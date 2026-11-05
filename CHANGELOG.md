@@ -1,0 +1,285 @@
+# Changelog — lingua-stt-backend
+
+Not a git repository, so this is the record of what changed and why. The
+README and PROTOCOL.md carry the reasoning in full; this is the chronology.
+
+---
+
+## 2026-10-30 (overnight, later) — short names are decided against the vocabulary
+
+### Fixed
+
+- **A short word could not be judged against its target alone.** Listing the
+  remaining false accepts by name showed they were nearly all the same shape:
+  a *different* short item, said correctly. `Hielo` (ice) scores 86 against
+  the target `Hilo` (string) and was accepted. The mirror error has the same
+  cause — similarity is a percentage of the word's length, so `Cubo` heard as
+  `Cuba` is a 75 against a threshold of 80, and a four-letter name has no room
+  for one mis-heard letter. Short words are the ones recognition gets wrong
+  most often and were being held to the strictest standard in the game.
+
+  `match()` now takes `rivals`, the other short item names (`Entry.rivals`,
+  built once per language from the Minecraft dictionary — 134 names for
+  es_es, 11 ms). If the transcript fits a different name better the attempt
+  fails whatever it scored; otherwise the threshold eases by 8 points,
+  floored just above the nearest rival. Slack alone would hand over the wrong
+  item and the veto alone would reject too much, so neither ships without the
+  other. With no vocabulary passed in, behaviour is unchanged.
+
+  ```
+                          without     with
+  accepted when correct     89.4%    90.3%     six voices, 2,886 clips
+  accepted when WRONG        2.9%     0.2%
+  ```
+
+  Both constants were then swept rather than argued (`sweep_rivals.py`): the
+  veto alone costs half a point of real accepts, the slack alone lets a few
+  wrong answers back in, and the pair sits on a plateau — slack 6–12 against
+  margin 10–14 all land on 90.1 / 0.2.
+
+- **A word split in two inside a longer name had no handling.** The
+  split-word rule compared the target word against the *whole* transcript
+  re-joined, which only works when the target is a single word: "Espada de
+  hierro" heard as "Es para de hierro" is one word split in two with the
+  other two intact, and "espada" against "esparadehierro" scored 67 where
+  "espada" against just "espara" scores 83. It now scans runs of up to three
+  **adjacent** tokens (`MAX_SPLIT_WINDOW`), still contiguous and still
+  length-guarded, so a long transcript cannot be re-joined until something
+  fits. +0.2 points across six voices at no cost on the negative corpus.
+
+- **"Wrong" is not a lesson.** When a short word is rejected for fitting
+  another item, the `result` frame's `note` says which — the mod's failure
+  flash reads "that sounded like Hielo" above "listen: Hilo". These are
+  exactly the pairs a learner cannot hear yet.
+
+### Added
+
+- **`scripts/ab_matcher.py`** — A/Bs a matcher change over the cached
+  positive *and* negative transcripts, so a candidate is judged on both
+  errors at once and the GPU never has to re-decode.
+- `tune_thresholds.py --voices` — the operating point was found against a
+  single synthetic speaker, which is the easy case; the corpus can now be
+  spoken by all six voices and the report breaks the two error rates down per
+  voice. **The shipped 80 / 70 survives it**: on 2,886 multi-voice clips the
+  sweep still puts the optimum there, so the threshold was not fitted to one
+  speaker even though the accuracy partly was.
+- `scripts/sweep_rivals.py`, which measures the two short-name constants
+  instead of defending them, and `--length` for the third.
+- `scripts/test_rivals_langs.py` — the property that has to hold in every
+  language, not just the one this was designed against: **saying the name
+  correctly still passes**. German item names are compounds so almost nothing
+  counts as short, and Japanese has no spaces at all, which makes 2,290 names
+  short against Spanish's 169. The candidate forms are now memoised
+  (`_rival_form`), which took a scoring pass from 1.28 ms to 0.21 ms and
+  removes the scaling hazard in the language nobody was testing.
+
+### Also fixed — measuring what actually ships, structurally
+
+Three separate versions of the same mistake, so it is now fixed in one place
+rather than a fourth time:
+
+- **Four harnesses were scoring a matcher the server does not run.**
+  `benchmark_asr`, `benchmark_voices`, `tune_thresholds` and `calibrate` all
+  called `match()` without the vocabulary, so from the moment `rivals`
+  existed every one of them measured something stricter than the real thing.
+  All four now pass `entry.rivals`.
+- **`benchmark_asr`'s flag defaults were beam 1 with the context prompt on**,
+  neither of which ships — a bare run reported 90.9% pass / 54.4% exact for a
+  configuration nobody uses. Every default now reads from the live settings.
+- **No measurement script applied `.env`**, which is exactly what beat the
+  code defaults the first time. There is now one `scripts/_env.py`, called
+  before `app.config` is imported in every script that measures anything;
+  `show_config.py` uses the same helper and reports the same values from the
+  other end.
+
+With all three fixed, the single-voice corpus at the shipped configuration is
+**92.9%** (86.9% at the start of the day), and the six-voice range is
+**85.7%–98.8%** — the worst voice gained 4.8 points and the spread closed
+from 15.5 to 13.1.
+- 8 more cases in `test_matching.py` (95 now, was 87): both directions of the
+  `Pala`/`Palo` minimal pair, the observed `Cubo`/`Cuba` transcription, and
+  the no-vocabulary fallback.
+- `e2e_test.py --note-shot` and `make_rival_audio.py` (mod repo), which
+  photograph the new failure message beside the punishment wheel. They land
+  on the same frame and have collided before.
+
+### Notes
+
+- Full-corpus figures replace the earlier subset ones, and
+  `benchmark_voices.py --wide` doubles the speaker sample to twelve (Chile,
+  Peru, the Dominican Republic and US Spanish added): **83.3% to 98.8%**
+  over 1,008 clips. `--items N` takes the *first* N and `CORPUS_ITEMS` is
+  ordered shortest-name-first, so the 30-item runs quoted earlier were 30 of
+  the hardest prompts and put the worst voice eight points low; `--items`
+  now defaults to the whole corpus.
+- The spread is **not** the tuning fitting one speaker — checked directly,
+  not assumed. It is the recogniser, so the honest move is to quote the worst
+  case rather than hunt for a threshold that closes the gap, and the script's
+  own warning line now says that instead of raising the question.
+
+---
+
+## 2026-10-30 (overnight) — both kinds of error, and sentence completeness
+
+### Added
+
+- **`scripts/benchmark_voices.py`** — the same corpus through six edge-tts
+  voices from four countries. Everything had been tuned against a *single*
+  synthetic voice, which turned out to matter: the spread is **23 points**
+  (es-MX-Dalia 93.8%, es-ES-Alvaro 70.8%). The honest figure is a range,
+  71–94% by speaker, not an average.
+- **`calibrate.py` now prices its own suggestion.** It tunes on words the
+  speaker meant to get right, which is one-sided by construction and can only
+  ever argue for looser thresholds — it would happily have recommended 74/66,
+  which takes wrong answers accepted from 2.1% to **17.1%**. The suggestion
+  is now run against the negative corpus and the cost printed next to it.
+- **Lenient stops**, on by default (`LINGUA_LENIENT_STOPS=0` to disable).
+  Spanish /p t k/ are unaspirated and an English-trained decoder hears them
+  as /b d g/ — `'Pan'` came back as `'¡Ban!'`, `'¡BEN!'`, `'¡Pen!'`. Merging
+  p↔b and t↔d gains ~2 points on four of six voices and costs **nothing**
+  measured on the negative corpus, because the item vocabulary has almost no
+  p/b or t/d minimal pairs.
+
+- **`scripts/tune_thresholds.py`** — a negative corpus (the most confusable
+  *other* item, spoken against each target), decoded once and cached, then a
+  threshold × gate sweep run purely in the matcher. This measures the error
+  nobody had measured: how often a **wrong** word is accepted. At the shipped
+  80 / 70 it is **2.1%**, against 87.7% accepted when correct, and the sweep
+  puts 80 / 70 at the optimum.
+- `scripts/seed_level.py`, for putting the drill history at a chosen rung.
+
+### Fixed
+
+- **The server was not running the configuration being benchmarked.** `.env`
+  pinned `LINGUA_BEAM_SIZE=1` and wins over the code default, so every
+  measurement had been made against a setting the actual server did not use.
+  `.env` and `.env.example` are now current, the measured-and-rejected
+  options are listed there with their numbers, and **`scripts/show_config.py`**
+  prints what the backend will really run with — including which settings
+  `.env` overrode. That gap is invisible otherwise.
+- `context_prompt` defaulted to `True` in code while being documented as off.
+  It is off, which is what was measured.
+- **A sentence prompt has to be attempted as a sentence.** At tier 3, saying
+  only the item passed or failed depending on how long the frame happened to
+  be: "Lingote de netherita" cleared "Tengo un lingote de netherita" at 83,
+  while the same shortcut against a longer frame scored 67. The score is now
+  scaled by how much of the sentence was attempted — one word lost to the
+  microphone costs little, saying the noun and stopping fails. Accept rate
+  went *up* (89.7% → 90.5%), so this cost nothing.
+- `GET /translate` accepts `tier=4` and takes an optional `level`.
+- **A repetition loop is collapsed before it is displayed.** The matcher
+  already refused to score one, but the raw text still went out for display,
+  so the overlay could read "la ropa de la ropa de la ropa de la ropa..." —
+  which tells the player nothing except that something is broken. Cut to six
+  words and an ellipsis.
+
+### Notes
+
+- The first negative corpus reported **16.7% wrong-accepted**, which was the
+  generator's fault: it paired plurals of the same word and items whose
+  tier-1 head nouns are identical, so the "wrong" answer was often the right
+  one. Fixed, and the real figure is 2.1%. Worth remembering that a
+  measurement harness can be wrong in the direction that makes you break
+  something that works.
+- `int8_float16` and `float32` both measured: the first is inside the noise
+  and slower, the second is byte-identical output at 50% more latency.
+  Staying on `float16`.
+- Run-to-run variance measured directly at about **1.2 points**; smaller
+  differences than that are not real.
+
+---
+
+## 2026-10-30 — recognition accuracy
+
+Measured, not guessed: `scripts/benchmark_asr.py` scores configurations
+against 252 clips and reports how often the player would have been
+**accepted**, through the real matcher at the real thresholds. 86.9% → 89.7%,
+exact transcription 65.5% → 73.0%.
+
+### Fixed
+
+- **Articles were pooled across every language.** "o" is the Portuguese
+  article and the Spanish word for "or", so a Spanish transcript of "o no"
+  was reduced to "no" before anything scored it — "Horno" came back as a 67
+  against audio that said it perfectly. Now per language.
+- **A word split in two had no handling.** Whisper rendered "Horno" as
+  "o no" — the same sounds, since the h is silent — and the per-token
+  coverage gate could never see it. The reverse case (words run together)
+  was already handled; this is its mirror, with the same length guard so it
+  cannot scan a rambling transcript for anything vaguely similar.
+- `beam_size` 1 → 5: +6 points of exact transcription for 3 ms.
+
+### Added
+
+- `scripts/benchmark_asr.py`, and nine real observed confusions as permanent
+  cases in `test_matching.py` (80 now, was 71).
+- `LINGUA_CONTEXT_PROMPT`, `LINGUA_NORMALISE_INPUT`,
+  `LINGUA_TEMPERATURE_FALLBACK` — all measured, all **off** by default
+  because none of them helped. Kept with the numbers so the next person does
+  not re-try them blind.
+
+### Notes
+
+- **A bigger model is worse here.** `medium` scored 87.1% against `small`'s
+  89.7%, answering "Cubo" with "Google." and "Huevo" with "Wibble." — a
+  stronger language prior is more willing to turn a lone word into confident
+  English. It is also 143 ms against 61 ms, which the 200 ms speculative-pass
+  loop cannot afford.
+- A small corpus lies. An early 132-clip run showed the context prompt
+  winning by 6.8 points; at 252 clips the gap was 0.4 and inside the
+  run-to-run noise of non-deterministic GPU beam search.
+
+---
+
+## 2026-10-29 — the trade judge, the drill history, and a performance pass
+
+### Added
+
+- **`app/llm.py` — the villager trade judge.** Asks a local model (Ollama,
+  `gemma3:12b`) whether a sentence is a sensible way to ask a merchant for an
+  item, in the right language. Prompted to accept asking, requesting, buying,
+  trading and offering to exchange, and to ignore the punctuation speech
+  recognition does not produce. `scripts/test_trade_judge.py` is a ten-case
+  table that tolerates one odd call and fails on two — a judgement is an
+  opinion, not a function.
+- **`app/stats.py` — the drill history.** SQLite record of every attempt;
+  `GET /review` weights the draw towards what keeps going wrong. This is what
+  lets a door quiz you on something you missed twenty minutes ago.
+- `POST /review/reset?lang=…` (`&all=true` for everything).
+- `mode: "trade"` on the websocket, with `note` on both the `attempt` and
+  `result` frames.
+- `scripts/test_client.py --trade` — negotiate like a villager without
+  launching Minecraft.
+
+### Fixed
+
+- **A refused trade ended the challenge immediately.** Now it comes back as
+  an `attempt` carrying the model's reason, and the player can start the
+  sentence again until the clock runs out. The reported transcript is the
+  *last* refused attempt rather than the highest-scoring one, because a word
+  match score against a one-word target says nothing about a sentence and
+  "best" was picking between attempts at random.
+- **Trade outcomes were polluting the pronunciation history.** `_finalize`
+  recorded every challenge, so a refused trade raised an item's review weight
+  and an accepted one lowered it — but the judge scores sentence
+  construction, not pronunciation. A door was being sent off to drill words
+  the player says fine. Now gated on `mode != "trade"`; word and review
+  challenges are still recorded, since both really are that question.
+- **The judge was cold exactly when it mattered.** Measured: **30.8s** cold
+  (7.5 GB from disk), 4s with the weights still in the page cache, **0.1s**
+  resident — against a 12-second trade timeout. A cold judge cannot answer in
+  time and the player is refused however well they asked. `warm()` had fired
+  when a trade *began*, and latched a boolean afterwards so it became a
+  permanent no-op once the model was ever evicted. It now warms when a
+  **client connects** and re-checks every ten minutes while someone plays.
+
+### Found
+
+- **Ollama's OpenAI-compatible endpoint silently ignores `keep_alive`.** A
+  `/v1` call asking for 2h left the window at the 30 minutes
+  `OLLAMA_KEEP_ALIVE` was set to; the identical native call moved it to 2h.
+  No error either way. Residency is therefore set through `/api/generate`
+  while judging stays on `/v1`, so any OpenAI-compatible server still works.
+- Measured headroom with Minecraft, whisper and the 7.5 GB judge all
+  resident: **10.7 / 16.3 GB VRAM, 0–8% GPU**. No pressure, so there is no
+  reason to drop to a smaller judge model.

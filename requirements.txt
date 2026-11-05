@@ -1,0 +1,32 @@
+# Lingua STT backend
+#
+# NOTE: faster-whisper / ctranslate2 are pinned to versions that actually have
+# sm_120 (Blackwell, RTX 50-series) kernels. Older ctranslate2 wheels enumerate
+# the GPU fine and then fail at the first kernel launch.
+faster-whisper>=1.2.0
+ctranslate2>=4.6.0
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+websockets>=12.0
+
+# thefuzz >=0.22 uses rapidfuzz as its backend; no python-Levenshtein needed.
+thefuzz>=0.22.1
+rapidfuzz>=3.9
+
+numpy>=1.24
+
+# CUDA runtime libraries CTranslate2 loads lazily on the first GPU kernel
+# launch. Without them the server starts, reports device=cuda, and then throws
+# "cublas64_12.dll is not found" the moment someone actually speaks.
+# app/cuda_dlls.py puts them on the DLL search path.
+nvidia-cublas-cu12 ; platform_system == "Windows"
+nvidia-cudnn-cu12>=9.1,<10 ; platform_system == "Windows"
+
+# Optional, only used by scripts/test_client.py --mic and --play
+sounddevice>=0.4.6 ; python_version >= "3.8"
+
+# Spoken examples played after a miss (/pronounce). Optional: without it
+# the backend falls back to an installed offline SAPI voice, and if there is
+# none for that language it simply plays nothing rather than mispronouncing.
+edge-tts>=7.0

@@ -1,0 +1,27 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# The speech model: ~1.9 GB, and it downloads itself on first run.
+# Also note the weights are reached through relative symlinks, so a copy of
+# this folder that has been through a zip arrives with every weight 0 bytes.
+models/
+
+# Minecraft's own translation files, extracted from the player's game.
+# Mojang's content, not ours -- they are not redistributable and they are not
+# needed: start_backend.ps1 extracts the one you want on first run.
+lang/*.json
+
+# Personal: one machine's settings, one player's vocabulary history, and a
+# cache of generated speech.
+.env
+data/
+cache/
+
+# Generated artwork (make_icon.py rebuilds both)
+leximine.ico
+leximine.png
+
+# Logs
+*.log
