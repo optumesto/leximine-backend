@@ -1,8 +1,12 @@
 # lingua-stt-backend
 
-Pronunciation-checking server for the **Leximine** Minecraft mod. The mod
-holds a picked-up item in limbo and asks the player to say its name in the
-target language; this server decides whether they did.
+Pronunciation-checking server for the
+[**Leximine**](https://github.com/optumesto/leximine-mod) Minecraft mod. The
+mod holds a picked-up item in limbo and asks the player to say its name in the
+target language; this server decides whether they did. The two halves are
+separate repositories and neither works alone; the
+[release](https://github.com/optumesto/leximine-mod/releases/latest) ships
+both.
 
 > **Just want to play?** Follow `INSTALL.md` in the Leximine folder, or run
 > **`setup.cmd`** here and then **`check-setup.cmd`** if anything looks wrong.
@@ -15,7 +19,7 @@ Minecraft except where it reads its dictionaries from.
 **Licence: [MPL-2.0](LICENSE)** — weak, file-level copyleft. Use it in
 anything, including commercial and closed-source work; if you modify these
 files and ship the result, those files stay open. Files you add are yours.
-The mod half is MIT, separately.
+The [mod half](https://github.com/optumesto/leximine-mod) is MIT, separately.
 
 Not under that licence, and not shipped: `lang/*.json` are Minecraft's own
 translation strings, extracted from your local game install at first run.
