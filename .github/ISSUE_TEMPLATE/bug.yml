@@ -1,0 +1,58 @@
+name: The backend is not working
+description: It will not start, will not use the GPU, or mishears everything
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Run `scripts\doctor.ps1` first.** It checks Python, the virtualenv,
+        the model, the GPU and the CUDA libraries, and names what is missing
+        along with the fix. It changes nothing.
+
+        If you are playing Leximine and the *game* is the problem — items come
+        free, villagers do not ask, a sentence reads oddly — report it at
+        [leximine-mod](https://github.com/optumesto/leximine-mod/issues)
+        instead. This repository is the speech server only.
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: doctor.ps1 output
+      description: Paste it, or say what it reported.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: The backend window, from startup to the failure
+      description: >
+        The first lines matter most — they say the device, the compute type and
+        how many words were loaded.
+      render: text
+
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU, or "CPU only"
+      placeholder: RTX 5060 Ti 16 GB
+
+  - type: markdown
+    attributes:
+      value: |
+        Two things that look like faults and are not:
+
+        - **It starts on the processor after reporting CUDA.** The server tries
+          CUDA and retries on CPU on any failure, so it stays playable. Slower,
+          not broken — `doctor.ps1` says which one you are on.
+        - **No spoken example after a miss.** That needs the network (Microsoft
+          edge-tts). With no connection, or with `/lex set pronunciation false`,
+          it plays nothing rather than mispronouncing.

@@ -1,0 +1,43 @@
+# The two table tests that need no GPU, no model and no server. They are the
+# part of this repository that can honestly be checked on a CI runner: the
+# speech path needs CUDA and a 461 MB model, so it is verified on the machine
+# that has them, not here.
+name: tests
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      # Deliberately not requirements.txt: faster-whisper and the CUDA wheels
+      # are ~2 GB and nothing these tests touch imports them.
+      - name: Install what the matcher needs
+        run: python -m pip install --upgrade pip "thefuzz>=0.22.1" "rapidfuzz>=3.9"
+
+      - name: Syntax-check every module
+        run: python -m compileall -q app scripts
+
+      - name: Fuzzy matcher table test
+        run: python scripts/test_matching.py
+
+      - name: Tiered prompt table test
+        run: python scripts/test_phrases.py
