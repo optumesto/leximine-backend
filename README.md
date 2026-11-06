@@ -12,9 +12,11 @@ both.
 > **`setup.cmd`** here and then **`check-setup.cmd`** if anything looks wrong.
 > The rest of this file is about how the server works.
 
-The server keeps its own name on purpose: it is a generic speech backend that
-serves any language and any client, and nothing in it is specific to
-Minecraft except where it reads its dictionaries from.
+It is named after the mod it serves, but it is not written around it: this is
+a generic speech backend that takes any language and any client, and nothing
+in it is specific to Minecraft except where it reads its dictionaries from.
+It carried the generic name `lingua-stt-backend` until 2026-11-05 — GitHub
+redirects that URL, and `LINGUA_*` settings are still honoured.
 
 **Licence: [MPL-2.0](LICENSE)** — weak, file-level copyleft. Use it in
 anything, including commercial and closed-source work; if you modify these
