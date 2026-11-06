@@ -154,9 +154,9 @@ async def run(args: argparse.Namespace) -> int:
     print("for reference, six synthetic Spanish voices score 73-94%")
 
     print("\nsuggested:")
-    print(f"  LINGUA_MATCH_THRESHOLD={sugg_threshold}")
+    print(f"  LEXIMINE_MATCH_THRESHOLD={sugg_threshold}")
     if sugg_gate is not None:
-        print(f"  LINGUA_TOKEN_GATE={sugg_gate}")
+        print(f"  LEXIMINE_TOKEN_GATE={sugg_gate}")
 
     # And what that suggestion would cost. Tuning on correct attempts alone
     # only ever argues for looser thresholds -- the reject side has to be
@@ -175,7 +175,7 @@ async def run(args: argparse.Namespace) -> int:
         print("   change is held against the confusable pairs too.")
     if quiet:
         print(f"\n!! {len(quiet)} recording(s) were very quiet (rms < 0.01).")
-        print("   Raise mic input gain, or lower LINGUA_SILENCE_RMS.")
+        print("   Raise mic input gain, or lower LEXIMINE_SILENCE_RMS.")
     print("\nAfter editing .env, restart the server and re-run")
     print("scripts/test_matching.py to confirm the confusables still fail.")
     return 0

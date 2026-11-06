@@ -5,7 +5,7 @@
 """Print the settings this backend will actually run with.
 
 Written because the running server and the code defaults had quietly drifted
-apart: `.env` pinned `LINGUA_BEAM_SIZE=1` while the tuned default was 5, so
+apart: `.env` pinned `LEXIMINE_BEAM_SIZE=1` while the tuned default was 5, so
 every benchmark had been measuring a configuration the server was not using.
 The `.env` wins, and nothing says so anywhere.
 

@@ -1,7 +1,40 @@
-# Changelog — lingua-stt-backend
+# Changelog — leximine-backend
 
-Not a git repository, so this is the record of what changed and why. The
-README and PROTOCOL.md carry the reasoning in full; this is the chronology.
+The record of what changed and why, in order. The README and PROTOCOL.md
+carry the reasoning in full; this is the chronology.
+
+---
+
+## 2026-11-05 — renamed to leximine-backend
+
+### Changed
+
+- **The project is now `leximine-backend`**, on GitHub and in every document.
+  "lingua-stt" dated from before the mod had its name, and two halves of one
+  product called different things is a cost paid by everyone who installs it.
+  GitHub redirects the old repository URL, so existing clones keep working.
+- **Settings are read from `LEXIMINE_*`**, and `LINGUA_*` is still honoured.
+  The fallback is not politeness: the 0.1.0 release shipped an `.env` full of
+  `LINGUA_*` keys, and a silently-ignored key does not raise an error — it
+  reverts that setting to its default, which is exactly how a night of ASR
+  benchmarking was once spent measuring a configuration nobody was running.
+  `app/config.py` resolves each name under the new prefix first, then the old;
+  `doctor.ps1` and `start_backend.ps1` read both the same way.
+- Informational strings follow the name: the logger, the FastAPI title, the
+  `server` field in the handshake (`leximine-backend`, documented in
+  PROTOCOL.md) and the `X-Leximine-Word` header on `/pronounce`. Nothing in
+  the mod reads any of them — they are for a human watching the window.
+
+### Added
+
+- **CI** (`.github/workflows/tests.yml`): the two table tests that need no
+  GPU, no model and no server, on Python 3.11-3.13, plus `compileall` over
+  everything. It installs thefuzz and rapidfuzz only — `requirements.txt`
+  pulls ~2 GB of faster-whisper and CUDA wheels that these tests never import.
+- **Issue templates**: this repository had none, and install problems land
+  here rather than on the mod. `bug.yml` asks for `doctor.ps1` output first;
+  `config.yml` routes sentence reports to CONTRIBUTING.md and anything
+  in-game to leximine-mod.
 
 ---
 

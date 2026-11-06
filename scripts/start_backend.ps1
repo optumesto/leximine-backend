@@ -106,7 +106,7 @@ if (Test-PortOpen) {
         Stop-Here 0
     }
     Write-Bad "Port $port is in use by another program."
-    Write-Step "Close whatever is using it, or set LINGUA_PORT in .env to a free port"
+    Write-Step "Close whatever is using it, or set LEXIMINE_PORT in .env to a free port"
     Write-Step "(and pass the same one to Minecraft with -Dleximine.backend)."
     Stop-Here 1
 }
@@ -159,8 +159,11 @@ foreach ($line in Get-Content ".env") {
              -Value $trimmed.Substring($split + 1).Trim().Trim('"')
 }
 
-if ($Language -ne "") { $env:LINGUA_TARGET_LANG = $Language }
-$target = $env:LINGUA_TARGET_LANG
+if ($Language -ne "") { $env:LEXIMINE_TARGET_LANG = $Language }
+# LINGUA_* is the pre-rename prefix, still honoured because .env files that
+# predate 2026-11-05 use it -- as does the 0.1.0 release. The backend itself
+# reads both; this script has to as well or it would report the wrong language.
+$target = if ($env:LEXIMINE_TARGET_LANG) { $env:LEXIMINE_TARGET_LANG } else { $env:LINGUA_TARGET_LANG }
 if (-not $target) { $target = "es_es" }
 
 # --- dictionary -------------------------------------------------------
@@ -177,7 +180,7 @@ if (-not (Test-Path "lang\$target.json")) {
 }
 
 # --- go ---------------------------------------------------------------
-$model = $env:LINGUA_MODEL
+$model = if ($env:LEXIMINE_MODEL) { $env:LEXIMINE_MODEL } else { $env:LINGUA_MODEL }
 if (-not $model) { $model = "small" }
 $downloading = -not (Test-Path "models")
 if ($downloading) {

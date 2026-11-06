@@ -31,7 +31,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
     datefmt="%H:%M:%S",
 )
-log = logging.getLogger("lingua")
+log = logging.getLogger("leximine")
 
 VERSION = "0.1.0"
 
@@ -60,7 +60,7 @@ async def lifespan(_: FastAPI):
         stats.close()
 
 
-app = FastAPI(title="Lingua STT", version=VERSION, lifespan=lifespan)
+app = FastAPI(title="Leximine speech backend", version=VERSION, lifespan=lifespan)
 
 
 def _audio_contract() -> dict[str, Any]:
@@ -206,7 +206,7 @@ async def pronounce(
             status_code=503,
             detail="no text-to-speech engine available for " + code)
     return FileResponse(path, media_type="audio/wav",
-                        headers={"X-Lingua-Word": text.encode("ascii", "replace").decode()})
+                        headers={"X-Leximine-Word": text.encode("ascii", "replace").decode()})
 
 
 @app.get("/translate")
@@ -295,7 +295,7 @@ async def ws_endpoint(ws: WebSocket) -> None:
     await send(
         {
             "type": "hello",
-            "server": "lingua-stt",
+            "server": "leximine-backend",
             "version": VERSION,
             "ready": engine.ready,
             "model": settings.model_size,

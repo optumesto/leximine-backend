@@ -177,7 +177,7 @@ class TradeJudge:
                 with self._lock:
                     self._warming = False
 
-        thread = threading.Thread(target=run, name="lingua-llm-warm", daemon=True)
+        thread = threading.Thread(target=run, name="leximine-llm-warm", daemon=True)
         thread.start()
 
     def _preload(self) -> int | None:

@@ -1,4 +1,4 @@
-# Lingua websocket protocol
+# Leximine websocket protocol
 
 `ws://127.0.0.1:8760/ws`
 
@@ -166,7 +166,7 @@ show "connecting" in game rather than starting challenges.
 ```json
 {
   "type": "hello",
-  "server": "lingua-stt",
+  "server": "leximine-backend",
   "version": "0.1.0",
   "ready": true,
   "model": "small",

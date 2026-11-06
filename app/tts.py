@@ -246,7 +246,7 @@ $synth.Dispose()
         than playing nothing at all.
         """
         culture = to_bcp47(lang).split("-")[0]
-        work = Path(tempfile.mkdtemp(prefix="lingua_tts_"))
+        work = Path(tempfile.mkdtemp(prefix="leximine_tts_"))
         try:
             script = work / "say.ps1"
             text_file = work / "text.txt"

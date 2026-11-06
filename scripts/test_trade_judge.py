@@ -52,7 +52,7 @@ def main() -> int:
         verdict = judge.judge(sentence, item, "es_es")
         if not verdict.available:
             print(f"!! no model reachable: {verdict.reason}")
-            print("   Start Ollama, or set LINGUA_LLM_URL / LINGUA_LLM_MODEL.")
+            print("   Start Ollama, or set LEXIMINE_LLM_URL / LEXIMINE_LLM_MODEL.")
             return 2
         ok = verdict.accepted == expected
         failures += 0 if ok else 1

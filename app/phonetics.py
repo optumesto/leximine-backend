@@ -102,8 +102,12 @@ def _base(language: str) -> str:
 #: points on four of them and costs **nothing** on the negative corpus --
 #: within the Minecraft item vocabulary there are almost no p/b or t/d
 #: minimal pairs, so the merge discards a distinction this app never has to
-#: make. Set LINGUA_LENIENT_STOPS=0 to go back to strict.
-LENIENT_STOPS = os.environ.get("LINGUA_LENIENT_STOPS", "1").strip().lower() in (
+#: make. Set LEXIMINE_LENIENT_STOPS=0 to go back to strict (LINGUA_ also
+#: works: that was the prefix before the 2026-11-05 rename).
+LENIENT_STOPS = os.environ.get(
+    "LEXIMINE_LENIENT_STOPS",
+    os.environ.get("LINGUA_LENIENT_STOPS", "1"),
+).strip().lower() in (
     "1", "true", "yes", "on")
 
 

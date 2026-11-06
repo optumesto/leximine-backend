@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-# Start the Lingua STT backend.
+# Start the Leximine speech backend.
 #
 #   .\run.ps1              normal start
 #   .\run.ps1 -Reload      auto-restart on code change (slow: reloads the model)
@@ -40,7 +40,7 @@ $extra = @()
 if ($Reload) { $extra += "--reload" }
 
 & $python -m uvicorn app.main:app `
-    --host $(if ($env:LINGUA_HOST) { $env:LINGUA_HOST } else { "127.0.0.1" }) `
-    --port $(if ($env:LINGUA_PORT) { $env:LINGUA_PORT } else { "8760" }) `
+    --host $(if ($env:LEXIMINE_HOST) { $env:LEXIMINE_HOST } elseif ($env:LINGUA_HOST) { $env:LINGUA_HOST } else { "127.0.0.1" }) `
+    --port $(if ($env:LEXIMINE_PORT) { $env:LEXIMINE_PORT } elseif ($env:LINGUA_PORT) { $env:LINGUA_PORT } else { "8760" }) `
     --ws-max-size 16777216 `
     @extra

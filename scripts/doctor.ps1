@@ -43,10 +43,15 @@ function Get-Setting($name, $fallback) {
     # .env wins over the default, the same precedence the backend itself uses.
     # Reading it here rather than importing the app keeps this script usable
     # when the virtualenv is the thing that is broken.
+    # LEXIMINE_<name> first, then the pre-rename LINGUA_<name> -- which is
+    # what the 0.1.0 release shipped, so an existing .env still holds it.
     $envFile = Join-Path $root ".env"
     if (Test-Path $envFile) {
-        foreach ($line in Get-Content $envFile) {
-            if ($line -match "^\s*$name\s*=\s*(.+?)\s*$") { return $Matches[1] }
+        foreach ($prefix in @("LEXIMINE_", "LINGUA_")) {
+            $key = $prefix + $name
+            foreach ($line in Get-Content $envFile) {
+                if ($line -match "^\s*$key\s*=\s*(.+?)\s*$") { return $Matches[1] }
+            }
         }
     }
     return $fallback
@@ -133,7 +138,7 @@ if (Test-Path $venvPython) {
     }
 }
 
-$modelSize = Get-Setting "LINGUA_MODEL" "small"
+$modelSize = Get-Setting "MODEL" "small"
 $modelDir = Join-Path $root "models"
 $cached = Get-ChildItem $modelDir -Directory -ErrorAction SilentlyContinue |
     Where-Object { $_.Name -like "models--Systran--faster-whisper-$modelSize" }
@@ -191,7 +196,7 @@ if ($smi) {
          "It will run on the CPU, several times slower. Playable, but answers lag."
 }
 
-$port = Get-Setting "LINGUA_PORT" "8760"
+$port = Get-Setting "PORT" "8760"
 try {
     $health = Invoke-RestMethod -Uri "http://127.0.0.1:$port/health" -TimeoutSec 5
     if (-not $health.ok) {
@@ -212,7 +217,7 @@ try {
 
 # ----------------------------------------------------------------------
 Section "Villagers and the nether portal (optional)"
-$llmModel = Get-Setting "LINGUA_LLM_MODEL" "gemma3:12b"
+$llmModel = Get-Setting "LLM_MODEL" "gemma3:12b"
 try {
     $tags = Invoke-RestMethod -Uri "http://127.0.0.1:11434/api/tags" -TimeoutSec 5
     $names = @($tags.models | ForEach-Object { $_.name })

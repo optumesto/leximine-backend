@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-"""Generate linguacraft.ico for the desktop shortcut.
+"""Generate leximine.ico for the desktop shortcut.
 
 Pure stdlib -- no Pillow. A Vista-or-later .ico may contain a PNG directly,
 so this rasterises the artwork, encodes a PNG by hand (zlib + CRC32 are both

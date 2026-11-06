@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: A sentence reads oddly in your language
-    url: https://github.com/optumesto/lingua-stt-backend/blob/main/CONTRIBUTING.md
+    url: https://github.com/optumesto/leximine-backend/blob/main/CONTRIBUTING.md
     about: >
       The most useful report here. Press N in game to capture the exact prompt,
       then open an issue with that line — CONTRIBUTING.md explains the format.

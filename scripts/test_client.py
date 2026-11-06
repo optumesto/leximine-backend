@@ -118,7 +118,7 @@ $synth.Dispose()
 def synth_wav(text: str, culture: str = "es") -> bytes:
     """Offline TTS through Windows SAPI. Text goes via a file so PowerShell
     never has to parse quotes or accents off the command line."""
-    tmp = Path(tempfile.mkdtemp(prefix="lingua_tts_"))
+    tmp = Path(tempfile.mkdtemp(prefix="leximine_tts_"))
     script, txt, wav = tmp / "say.ps1", tmp / "text.txt", tmp / "out.wav"
     script.write_text(_SAPI_SCRIPT, encoding="utf-8")
     txt.write_text(text, encoding="utf-8")

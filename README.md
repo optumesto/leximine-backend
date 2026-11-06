@@ -1,4 +1,4 @@
-# lingua-stt-backend
+# leximine-backend
 
 Pronunciation-checking server for the
 [**Leximine**](https://github.com/optumesto/leximine-mod) Minecraft mod. The
@@ -90,7 +90,7 @@ language and exits.
 
 ### Changing language
 
-Edit `LINGUA_TARGET_LANG` in `.env` and restart, or pass it once with
+Edit `LEXIMINE_TARGET_LANG` in `.env` and restart, or pass it once with
 `start_backend.ps1 -Language fr_fr`. The dictionary comes out of your own
 Minecraft assets, so launch the game once with that language selected first.
 In the game it is easier: the title screen has a picker.
@@ -153,7 +153,7 @@ inference. The player gets their item the instant they finish the word.
 ## Setup
 
 ```powershell
-cd Z:\lingua-stt-backend
+cd Z:\leximine-backend
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Copy-Item .env.example .env
@@ -193,7 +193,7 @@ multi-word name is the voice, not the backend. Use `--mic` for real checks.
 
 ## Difficulty, and why it is two numbers
 
-`LINGUA_MATCH_THRESHOLD` (default 80) is overall similarity. On its own it is
+`LEXIMINE_MATCH_THRESHOLD` (default 80) is overall similarity. On its own it is
 not enough, because Minecraft item names are templates:
 
 ```
@@ -206,7 +206,7 @@ prefix. Said plainly: with one threshold, **saying "lingote de oro" hands you
 an iron ingot**. That was a real failure in this repo's own test table before
 the fix.
 
-So `LINGUA_TOKEN_GATE` (default 70) additionally requires every
+So `LEXIMINE_TOKEN_GATE` (default 70) additionally requires every
 *distinguishing* word of the name to be matched on its own. Function words
 (`de`, `of`, `y`) are excluded — but short meaningful ones are not, because
 `oro` is exactly the word that separates gold from iron. Measured separations:
@@ -236,7 +236,7 @@ confusable pairs instead of quietly letting them through.
 
 ### Easy mode
 
-`LINGUA_EASY_MODE=true` passes the expected word to the decoder as a hotword.
+`LEXIMINE_EASY_MODE=true` passes the expected word to the decoder as a hotword.
 It makes whisper far more likely to produce the target word, including from
 mumbling, so it largely defeats the exercise. Off by default; it is there for
 a first-session difficulty option.
@@ -251,7 +251,7 @@ a first-session difficulty option.
 
 Prints the effective settings **and** which of them `.env` overrode. Worth
 running before trusting any measurement: `.env` wins over the code defaults,
-and for a while it pinned `LINGUA_BEAM_SIZE=1` while the tuned default was 5
+and for a while it pinned `LEXIMINE_BEAM_SIZE=1` while the tuned default was 5
 — so the benchmarks were measuring a configuration the server did not use.
 Nothing surfaced that from either side alone.
 
@@ -471,7 +471,7 @@ worst case rather than to go hunting for a threshold that closes the gap.
 That spread is also what found the last real win. Alvaro's failures clustered
 on unaspirated stops — `'Pan'` came back as `'¡Ban!'`, `'¡BEN!'`, `'¡Pen!'` —
 because Spanish /p t k/ are unaspirated and an English-trained decoder hears
-them as /b d g/. Merging p↔b and t↔d phonetically (`LINGUA_LENIENT_STOPS`,
+them as /b d g/. Merging p↔b and t↔d phonetically (`LEXIMINE_LENIENT_STOPS`,
 on by default) gains about two points on four of the six voices and costs
 **nothing** on the negative corpus: the Minecraft item vocabulary has almost
 no p/b or t/d minimal pairs, so the merge discards a distinction this app
@@ -512,7 +512,7 @@ Whisper invents text when fed silence or room noise — "Gracias por ver el
 video", "Subtítulos realizados por...". Three guards, in order of how much
 they do:
 
-1. **RMS gate** (`LINGUA_SILENCE_RMS`) — quiet buffers never reach the model
+1. **RMS gate** (`LEXIMINE_SILENCE_RMS`) — quiet buffers never reach the model
    at all. Cheapest and most effective.
 2. **Decoder metrics** — `no_speech_prob` and `avg_logprob` rejection.
 3. **Phrase blocklist** — `matching.HALLUCINATIONS`, for what survives 1 and 2.

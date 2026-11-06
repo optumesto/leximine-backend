@@ -29,7 +29,7 @@ from app.config import Settings  # noqa: E402
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default=None, help="override LINGUA_MODEL")
+    ap.add_argument("--model", default=None, help="override LEXIMINE_MODEL")
     ap.add_argument("--compute-type", default=None)
     args = ap.parse_args()
 

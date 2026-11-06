@@ -1,4 +1,4 @@
-# Lingua STT backend
+# Leximine speech backend
 #
 # NOTE: faster-whisper / ctranslate2 are pinned to versions that actually have
 # sm_120 (Blackwell, RTX 50-series) kernels. Older ctranslate2 wheels enumerate

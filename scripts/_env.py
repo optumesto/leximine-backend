@@ -8,7 +8,7 @@ Every measurement script has to do this. `app.config.Settings` reads the
 environment at import time and the launcher exports `.env` into it, so a
 script that skips this step builds a `Settings` from the code defaults and
 then reports numbers for a configuration the server is not running. That is
-not hypothetical: `.env` pinned `LINGUA_BEAM_SIZE=1` for a whole night of
+not hypothetical: `.env` pinned `LEXIMINE_BEAM_SIZE=1` for a whole night of
 tuning that had concluded 5, and nothing anywhere said so.
 
 Import this **before** anything from `app`:
