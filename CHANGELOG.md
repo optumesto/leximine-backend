@@ -128,12 +128,26 @@ reasoning about it:
   `Set-Content` would add a UTF-8 BOM, Python would read it as part of the
   first path, and site-packages would silently never be found.
 
-Verified end to end on a sandbox with no `.venv` and no Python on PATH: the
-interpreter is fetched, pip comes up, a compiled wheel (`rapidfuzz`,
-cp311-win_amd64) installs and imports, and `python311._pth` begins `70 79 74
-68` with no BOM. The full 2.3 GB install into an embeddable interpreter has
-**not** been run — `pip install --dry-run` resolves all 56 packages as wheels
-needing no compiler, which is evidence and not proof.
+**Verified end to end, by installing it.** From the published `Leximine.zip`,
+extracted fresh, with every Python hidden from PATH so the embeddable branch
+was the only route:
+
+- the interpreter is fetched and checksum-verified, pip bootstraps and
+  self-upgrades
+- all 56 packages install — 2.3 GB, including `ctranslate2`, `faster-whisper`,
+  `av`, `onnxruntime`, `tokenizers` and the NVIDIA CUDA runtime wheels
+- it is genuinely the embeddable build and not a venv created from some Python
+  that escaped the PATH filter: `pyvenv.cfg` absent, `python311._pth` present,
+  Python 3.11.9
+- `python311._pth` carries no BOM, which would have silently cost it
+  site-packages
+- the backend **serves** from it: uvicorn came up and `/health` answered in two
+  seconds with `"device":"cuda","compute_type":"float16"`, 5,710 dictionary
+  entries, version 0.1.2
+
+That last line is the one that mattered. An embeddable layout resolves DLLs
+differently from a venv, and `app/cuda_dlls.py` has to put the CUDA runtime on
+the search path for ctranslate2's first kernel launch. It does.
 
 - **The dependency check no longer throws instead of installing.** Under
   `$ErrorActionPreference = "Stop"`, PowerShell 5.1 turns a native command's
