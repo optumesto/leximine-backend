@@ -111,37 +111,21 @@ if (Test-PortOpen) {
     Stop-Here 1
 }
 
-# --- python -----------------------------------------------------------
+# --- python and dependencies ------------------------------------------
+# Delegated to ensure_env.ps1, which setup.ps1 also runs. This is the safety
+# net for anyone who skipped setup, or whose setup was interrupted: it checks
+# each piece before fetching it, so when setup has already run this costs a
+# second and prints two lines.
 $firstRun = -not (Test-Path $python)
 if ($firstRun) {
-    Write-Step "First run: setting up. A few minutes, once."
+    Write-Step "First run: setting up. This takes a while, once."
     Write-Host ""
-
-    if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-        Write-Bad "Python is not installed, or not on PATH."
-        Write-Step "Install Python 3.11 or newer from python.org, tick"
-        Write-Step "'Add python.exe to PATH' during setup, then run this again."
-        Stop-Here 1
-    }
-
-    Write-Step "Creating the virtual environment..."
-    & python -m venv .venv
-    if ($LASTEXITCODE -ne 0) { Write-Bad "venv creation failed."; Stop-Here 1 }
 }
-
-# --- dependencies -----------------------------------------------------
-# Cheap import check rather than running pip every launch, which would add
-# several seconds to a start that should be instant.
-& $python -c "import fastapi, faster_whisper, thefuzz, uvicorn" 2>$null
-if ($LASTEXITCODE -ne 0) {
-    Write-Step "Installing dependencies (a few hundred MB, one time)..."
-    & $python -m pip install --disable-pip-version-check --quiet --upgrade pip
-    & $python -m pip install --disable-pip-version-check -r requirements.txt
-    if ($LASTEXITCODE -ne 0) {
-        Write-Bad "Dependency install failed. Scroll up for the reason."
-        Stop-Here 1
-    }
-    Write-Ok "Dependencies installed."
+& powershell -NoProfile -ExecutionPolicy Bypass `
+    -File (Join-Path $PSScriptRoot "ensure_env.ps1") -NoWait
+if (($LASTEXITCODE -ne 0) -or (-not (Test-Path $python))) {
+    Write-Bad "The Python environment is not ready. The reason is above."
+    Stop-Here 1
 }
 
 # --- .env -------------------------------------------------------------

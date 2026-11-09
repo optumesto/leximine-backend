@@ -129,13 +129,12 @@ if (Test-Path $venvPython) {
     $pyVersion = (& $venvPython --version)
     Ok "virtualenv built ($pyVersion)"
 } else {
-    $system = Get-Command python -ErrorAction SilentlyContinue
-    if ($system) {
-        Bad "No virtualenv in this folder" "Run setup.cmd - it builds .venv and installs the dependencies."
-    } else {
-        Bad "Python is not installed" `
-            "Install Python 3.10+ from https://python.org and tick 'Add to PATH', then run setup.cmd."
-    }
+    # Both routes build it, so name the one the player already has open.
+    # Python no longer has to be installed first: ensure_env.ps1 fetches a
+    # private copy when the machine has none, so "install Python" is advice
+    # about speed, not a requirement.
+    Bad "No virtualenv in this folder" `
+        "Double-click Setup.cmd at the top of the Leximine folder. It builds .venv and installs the dependencies (about 2.3 GB, once)."
 }
 
 $modelSize = Get-Setting "MODEL" "small"

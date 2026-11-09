@@ -7,9 +7,10 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 #   powershell -ExecutionPolicy Bypass -File scripts\setup.ps1 -Uninstall
 #
-# Puts the backend shortcut on the desktop and installs the mod into Minecraft
-# as its own launcher profile. Run once; after that the desktop shortcut is the
-# only thing you need.
+# Builds the Python environment, downloads the speech model, puts the backend
+# shortcut on the desktop and installs the mod into Minecraft as its own
+# launcher profile. Run once; after that the desktop shortcut is the only thing
+# you need, and it starts in seconds because this did the waiting.
 
 param(
     [switch]$Uninstall,
@@ -44,7 +45,26 @@ Write-Host ""
 Write-Host "  Leximine - setup" -ForegroundColor Cyan
 Write-Host "  -------------------" -ForegroundColor DarkGray
 
-# --- 1. the icon ------------------------------------------------------
+# --- 1. python, dependencies, model -----------------------------------
+# First, and in setup rather than at launch. These are the long, failure-prone
+# downloads; doing them here means the desktop shortcut is instant afterwards,
+# and that a failure happens in the step the player is already watching rather
+# than in one they think is just a launcher.
+if (-not $Uninstall) {
+    Write-Host ""
+    Write-Host "  [1/3] Python environment and speech model" -ForegroundColor White
+    & powershell -NoProfile -ExecutionPolicy Bypass `
+        -File (Join-Path $PSScriptRoot "ensure_env.ps1") -WithModel -NoWait
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Warn2 "The environment is not ready, so setup stopped here."
+        Write-Step "The reason is above. Nothing else has been changed."
+        if (-not $NoWait) { Read-Host "  Press Enter to close" }
+        exit 1
+    }
+}
+
+# --- 2. the icon ------------------------------------------------------
 if (-not $Uninstall) {
     if (-not (Test-Path (Join-Path $root "leximine.ico"))) {
         $python = Join-Path $root ".venv\Scripts\python.exe"
@@ -53,16 +73,16 @@ if (-not $Uninstall) {
     }
 }
 
-# --- 2. desktop shortcut ---------------------------------------------
+# --- 3. desktop shortcut ---------------------------------------------
 Write-Host ""
-Write-Host "  [1/2] Desktop shortcut" -ForegroundColor White
+Write-Host "  [2/3] Desktop shortcut" -ForegroundColor White
 $shortcutArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass",
                   "-File", (Join-Path $PSScriptRoot "install_shortcut.ps1"))
 if ($Uninstall) { $shortcutArgs += "-Remove" }
 & powershell @shortcutArgs
 
-# --- 3. the mod ------------------------------------------------------
-Write-Host "  [2/2] Minecraft mod" -ForegroundColor White
+# --- 4. the mod ------------------------------------------------------
+Write-Host "  [3/3] Minecraft mod" -ForegroundColor White
 if ($SkipMod) {
     Write-Step "Skipped (-SkipMod)."
 } elseif (-not (Test-Path $modRepo)) {

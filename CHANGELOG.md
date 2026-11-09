@@ -56,6 +56,77 @@ carry the reasoning in full; this is the chronology.
 - matching 99/99, phrases PASSED, rivals PASSED, and the trade judge reports
   Ollama unavailable and degrades instead of crashing.
 
+### Changed — setup does the waiting now
+
+The install did not do what the documentation said it did. INSTALL.md promised
+that `setup.cmd` "builds the Python environment"; it did not. `setup.ps1` did
+the icon, the desktop shortcut and the mod, and the venv plus 2.3 GB of wheels
+were built by `start_backend.ps1` instead — so setup finished in seconds
+saying "Setup complete", and the real work ambushed the player the first time
+they double-clicked what they thought was a launcher. `check-setup.cmd` made
+it worse by answering a missing venv with "Run setup.cmd - it builds .venv",
+which sent them in a circle.
+
+- **`scripts/ensure_env.ps1`** is new and owns the environment: interpreter,
+  dependencies, and optionally the model. `setup.ps1` runs it first, as step
+  1 of 3, with `-WithModel`. `start_backend.ps1` runs it too and is now purely
+  the safety net for anyone who skipped setup — identical logic, one copy of
+  it. Every piece is checked before it is fetched, so a second run costs a
+  second: measured at 0.9 s on an environment that is already built.
+- **The dependency install is no longer silent.** It ran `pip --quiet` while
+  announcing "a few hundred MB" for what is actually 2.3 GB. Ten silent
+  minutes is where someone force-closes, and a force-close mid-pip leaves a
+  half-written environment that has to be deleted by hand. Progress bars are
+  on, the figure is honest, and the window says not to close it.
+- **The speech model is fetched during setup** (`scripts/fetch_model.py`),
+  not on first play. Loaded on cpu/int8 purely to pull the weights, so a
+  machine with no CUDA can run it, and non-fatal: a failed pre-fetch costs a
+  wait, where a failed setup costs the install.
+- **`doctor.ps1` no longer gives circular advice** for a missing venv.
+
+### Added — Python is no longer a prerequisite
+
+The documented number-one failure was the "Add python.exe to PATH" checkbox in
+someone else's installer. It is gone as a failure mode: when no Python 3.11+
+is on PATH, `ensure_env.ps1` fetches the official embeddable build from
+python.org (11 MB) into `.venv`, pinned and checksum-verified the way
+`install_mod.ps1` pins Fabric API, and bootstraps pip into it. Nothing is
+installed system-wide, nothing touches PATH or the registry, and deleting the
+folder removes it. A machine that already has Python still gets an ordinary
+venv.
+
+It is laid out as `.venv\Scripts\python.exe`, which is the path every other
+script here already used, so nothing else had to learn about it.
+
+Three things that had to be got right, each found by running it rather than
+reasoning about it:
+
+- The embeddable build ships without `venv` **and** without `ensurepip`, so
+  pip can neither install itself nor be asked to. A wheel is a zip and pip is
+  pure Python, so the wheel is unpacked into site-packages directly.
+- `Expand-Archive` refuses any extension but `.zip` — the pip wheel is saved
+  as `.zip` for that reason alone.
+- The `._pth` file is written with `WriteAllText` and explicit ASCII.
+  `Set-Content` would add a UTF-8 BOM, Python would read it as part of the
+  first path, and site-packages would silently never be found.
+
+Verified end to end on a sandbox with no `.venv` and no Python on PATH: the
+interpreter is fetched, pip comes up, a compiled wheel (`rapidfuzz`,
+cp311-win_amd64) installs and imports, and `python311._pth` begins `70 79 74
+68` with no BOM. The full 2.3 GB install into an embeddable interpreter has
+**not** been run — `pip install --dry-run` resolves all 56 packages as wheels
+needing no compiler, which is evidence and not proof.
+
+- **The dependency check no longer throws instead of installing.** Under
+  `$ErrorActionPreference = "Stop"`, PowerShell 5.1 turns a native command's
+  stderr into a terminating error even with `2>$null` — so the import probe,
+  whose entire purpose is to fail on a fresh environment, killed the script
+  rather than returning a code. Probes now run through a helper that drops the
+  preference for the length of the call.
+- **pip's output encoding is pinned to UTF-8.** `rich` draws progress with box
+  characters and dies with a `UnicodeEncodeError` on a cp1252 console; seen
+  while testing this.
+
 ---
 
 ## 2026-11-05 — renamed to leximine-backend
