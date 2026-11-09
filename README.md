@@ -192,13 +192,21 @@ David reads Spanish with English phonetics and whisper correctly hears
 nonsense ("lingote de hierro" → "Lingotero"). A `--say-target` failure on a
 multi-word name is the voice, not the backend. Use `--mic` for real checks.
 
-An independent run on 2026-11-09 put a number on that. A synthesized Spanish
-`Diamante` fed over the websocket came back as "Yamante." — Whisper clipping
-the soft D on a robotic voice — and scored **80 against a threshold of 80**: a
-pass with no margin at all, in ~6.3 s on CPU. A single word is the easy case,
-which makes this the sharpest form of the caveat above. A synthetic voice sits
-on the boundary where a human voice has room, so do not read a synthesized
-pass as headroom and do not tune the threshold against one.
+Two runs on 2026-11-09 put numbers on that, and the numbers disagree. A
+synthesized Spanish `Diamante` fed over the websocket on one machine came back
+as "Yamante." — Whisper clipping the soft D on a robotic voice — and scored
+**80 against a threshold of 80**, a pass with no margin at all, in ~6.3 s on
+CPU. The same word from `run/testaudio/diamante.wav`, which `make_test_audio.ps1`
+synthesizes through Windows SAPI using an *English* voice because this machine
+has no Spanish one, came back as "Diamante." and scored **100**.
+
+Same word, same matcher, same threshold; two synthesizers, 80 and 100. So the
+lesson is not that synthetic speech sits near the boundary — it is that a
+synthesized score says almost nothing about a human's margin, in either
+direction. Do not read a synthesized pass as headroom, do not read a
+synthesized near-miss as a threshold that needs lowering, and do not tune
+80 / 70 against either. The sweep over six voices and 2,886 clips below is
+what that number rests on.
 
 ---
 

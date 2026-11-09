@@ -44,10 +44,15 @@ carry the reasoning in full; this is the chronology.
   server by someone reading only the document: `hello`, a challenge for a
   diamond returning `challenge_ready` with target `Diamante`, and a clean
   timeout with a proper result frame when no audio arrives.
-- **A synthesized Spanish `Diamante` passed at exactly 80 against a threshold
-  of 80** — heard as "Yamante.", ~6.3 s on CPU. A zero-margin pass. Recorded
-  in the README beside the synthetic-voice caveat, because it is the sharpest
-  version of it.
+- **Two synthesizers, the same word, 80 and 100.** A synthesized Spanish
+  `Diamante` scored exactly 80 against a threshold of 80 on one machine — heard
+  as "Yamante.", ~6.3 s on CPU. The repository's own fixture for the same word,
+  synthesized through Windows SAPI with an English voice, scored 100 in the
+  e2e run the same night. The README said the first number meant synthetic
+  voices sit near the boundary; the second number says that was a
+  generalisation from one sample. What it actually means is that a synthesized
+  score carries no information about a human's margin in either direction, and
+  the six-voice sweep is what 80 / 70 rests on. Corrected there.
 - matching 99/99, phrases PASSED, rivals PASSED, and the trade judge reports
   Ollama unavailable and degrades instead of crashing.
 
