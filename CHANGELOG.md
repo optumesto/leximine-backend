@@ -5,6 +5,24 @@ carry the reasoning in full; this is the chronology.
 
 ---
 
+## 2026-11-09 (later) — 0.1.2, so the download carries the installer fixes
+
+### Changed
+
+- **Version 0.1.2.** 0.1.1's zip was published at 07:36 and the installer work
+  landed after it, so the download contained none of it: no `ensure_env.ps1`,
+  no root `check-setup.cmd`, Python still a hard prerequisite, and a setup step
+  that still finished in seconds and left 2.3 GB for the first launch. Checked
+  against the published asset rather than assumed — zero matches for either
+  file. Replacing 0.1.1's bytes in place was the alternative and was rejected
+  for the same reason it was rejected yesterday: that version is public and
+  already downloaded, and its tag would stop describing its contents.
+- The mod jar is unchanged in substance. The 0.1.1 and 0.1.2 jars were compared
+  entry by entry: all 60 class files byte-identical, one line different in
+  `fabric.mod.json`. This is a backend-and-installer release.
+
+---
+
 ## 2026-11-09 — links follow the mod's rename
 
 ### Changed

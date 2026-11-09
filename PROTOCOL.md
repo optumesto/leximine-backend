@@ -167,7 +167,7 @@ show "connecting" in game rather than starting challenges.
 {
   "type": "hello",
   "server": "leximine-backend",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "ready": true,
   "model": "small",
   "device": "cuda",
