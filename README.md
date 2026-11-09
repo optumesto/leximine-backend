@@ -1,11 +1,11 @@
 # leximine-backend
 
 Pronunciation-checking server for the
-[**Leximine**](https://github.com/optumesto/leximine-mod) Minecraft mod. The
+[**Leximine**](https://github.com/optumesto/leximine) Minecraft mod. The
 mod holds a picked-up item in limbo and asks the player to say its name in the
 target language; this server decides whether they did. The two halves are
 separate repositories and neither works alone; the
-[release](https://github.com/optumesto/leximine-mod/releases/latest) ships
+[release](https://github.com/optumesto/leximine/releases/latest) ships
 both.
 
 > **Just want to play?** Follow `INSTALL.md` in the Leximine folder, or run
@@ -21,7 +21,7 @@ redirects that URL, and `LINGUA_*` settings are still honoured.
 **Licence: [MPL-2.0](LICENSE)** — weak, file-level copyleft. Use it in
 anything, including commercial and closed-source work; if you modify these
 files and ship the result, those files stay open. Files you add are yours.
-The [mod half](https://github.com/optumesto/leximine-mod) is MIT, separately.
+The [mod half](https://github.com/optumesto/leximine) is MIT, separately.
 
 Not under that licence, and not shipped: `lang/*.json` are Minecraft's own
 translation strings, extracted from your local game install at first run.
@@ -155,7 +155,8 @@ inference. The player gets their item the instant they finish the word.
 ## Setup
 
 ```powershell
-cd Z:\leximine-backend
+git clone https://github.com/optumesto/leximine-backend.git
+cd leximine-backend
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Copy-Item .env.example .env

@@ -11,7 +11,7 @@ body:
 
         If you are playing Leximine and the *game* is the problem — items come
         free, villagers do not ask, a sentence reads oddly — report it at
-        [leximine-mod](https://github.com/optumesto/leximine-mod/issues)
+        [leximine](https://github.com/optumesto/leximine/issues)
         instead. This repository is the speech server only.
 
   - type: textarea

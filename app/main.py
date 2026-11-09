@@ -33,7 +33,7 @@ logging.basicConfig(
 )
 log = logging.getLogger("leximine")
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 
 engine = SttEngine(settings)
 dictionary = DictionaryRegistry(

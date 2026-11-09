@@ -130,7 +130,7 @@ def main() -> int:
     # this was still writing linguacraft.png into lingua-craft-mod, which is a
     # name and a folder that no longer exist, so the launcher profile has been
     # going in without its icon.
-    for name in ("leximine-mod", "lingua-craft-mod"):
+    for name in ("leximine", "leximine-mod", "lingua-craft-mod"):
         sibling = root.parent / name
         if sibling.is_dir():
             copy = sibling / "leximine.png"

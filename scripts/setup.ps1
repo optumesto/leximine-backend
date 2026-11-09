@@ -22,7 +22,7 @@ $root = Split-Path $PSScriptRoot -Parent
 # Where the mod half lives. Several candidates, because this script has two
 # very different audiences:
 #
-#   ..\leximine-mod      a source checkout, the two repos side by side
+#   ..\leximine          a source checkout, the two repos side by side
 #   ..\lingua-craft-mod  the same, from before the rename
 #   ..\mod               a downloaded release, backend\ and mod\ in one folder
 #
@@ -30,11 +30,11 @@ $root = Split-Path $PSScriptRoot -Parent
 # cheerfully installs half the product.
 $parent = Split-Path $root -Parent
 $modRepo = $null
-foreach ($candidate in @("leximine-mod", "lingua-craft-mod", "mod")) {
+foreach ($candidate in @("leximine", "leximine-mod", "lingua-craft-mod", "mod")) {
     $path = Join-Path $parent $candidate
     if (Test-Path $path) { $modRepo = $path; break }
 }
-if (-not $modRepo) { $modRepo = Join-Path $parent "leximine-mod" }
+if (-not $modRepo) { $modRepo = Join-Path $parent "leximine" }
 
 function Write-Step($text) { Write-Host "  $text" -ForegroundColor Gray }
 function Write-Ok($text) { Write-Host "  $text" -ForegroundColor Green }
@@ -68,7 +68,7 @@ if ($SkipMod) {
 } elseif (-not (Test-Path $modRepo)) {
     Write-Warn2 "Mod project not found next to this one at:"
     Write-Step "  $modRepo"
-    Write-Step "Run install_mod.ps1 from wherever leximine-mod lives."
+    Write-Step "Run install_mod.ps1 from wherever leximine lives."
 } else {
     $modArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass",
                  "-File", (Join-Path $modRepo "scripts\install_mod.ps1"), "-NoWait")

@@ -6,5 +6,5 @@ contact_links:
       The most useful report here. Press N in game to capture the exact prompt,
       then open an issue with that line — CONTRIBUTING.md explains the format.
   - name: Installing Leximine, or the game side of it
-    url: https://github.com/optumesto/leximine-mod/issues
+    url: https://github.com/optumesto/leximine/issues
     about: The mod, the launcher profile, Fabric, and anything in Minecraft itself.

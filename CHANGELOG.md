@@ -5,6 +5,37 @@ carry the reasoning in full; this is the chronology.
 
 ---
 
+## 2026-11-09 — links follow the mod's rename
+
+### Changed
+
+- **The mod repository is now `leximine`, not `leximine-mod`**, and every link
+  here points at it: the README's three references, `bug.yml`, and the
+  `config.yml` contact link that routes game-side reports away from this
+  repository. GitHub redirects the old URL, so none of them were broken in the
+  meantime.
+- **`setup.ps1` and `make_icon.py` look for a sibling folder called `leximine`
+  first**, then `leximine-mod`, then the older `lingua-craft-mod`. A clone from
+  before either rename still resolves, and the release layout (`..\mod`) is
+  unaffected.
+- **The README setup block starts with `git clone`.** It opened with a `cd` into
+  an absolute path on one machine, which is not a step anyone else can follow.
+- **Version 0.1.1**, which is the release this half ships in. The handshake and
+  `PROTOCOL.md`'s example follow it.
+
+### Fixed
+
+- **`check-setup.cmd` had LF line endings in this working copy**, and so in the
+  0.1.0 download — the one file both issue templates and INSTALL.md tell people
+  to double-click first. `.gitattributes` has declared `*.cmd eol=crlf` all
+  along, which is why the repository copy is right and a fresh clone is fine;
+  this working copy predates the rule, and `git status` compares normalised
+  content, so nothing ever reported it. Refreshed from the index, and
+  `make_release.ps1` in the mod repository now fails a release that contains an
+  LF `.cmd` rather than publishing one.
+
+---
+
 ## 2026-11-05 — renamed to leximine-backend
 
 ### Changed
