@@ -34,6 +34,23 @@ carry the reasoning in full; this is the chronology.
   `make_release.ps1` in the mod repository now fails a release that contains an
   LF `.cmd` rather than publishing one.
 
+### Verified
+
+- **The CPU fallback is real.** Tested 2026-11-09 on a machine with no usable
+  GPU: CUDA was attempted, failed with "CUDA driver version is insufficient",
+  and the loader fell through to cpu/int8 exactly as INSTALL.md promises. The
+  server came up on 8760 and answered.
+- **PROTOCOL.md matches the wire**, checked frame by frame against a fresh
+  server by someone reading only the document: `hello`, a challenge for a
+  diamond returning `challenge_ready` with target `Diamante`, and a clean
+  timeout with a proper result frame when no audio arrives.
+- **A synthesized Spanish `Diamante` passed at exactly 80 against a threshold
+  of 80** — heard as "Yamante.", ~6.3 s on CPU. A zero-margin pass. Recorded
+  in the README beside the synthetic-voice caveat, because it is the sharpest
+  version of it.
+- matching 99/99, phrases PASSED, rivals PASSED, and the trade judge reports
+  Ollama unavailable and degrades instead of crashing.
+
 ---
 
 ## 2026-11-05 — renamed to leximine-backend

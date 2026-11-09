@@ -192,6 +192,14 @@ David reads Spanish with English phonetics and whisper correctly hears
 nonsense ("lingote de hierro" → "Lingotero"). A `--say-target` failure on a
 multi-word name is the voice, not the backend. Use `--mic` for real checks.
 
+An independent run on 2026-11-09 put a number on that. A synthesized Spanish
+`Diamante` fed over the websocket came back as "Yamante." — Whisper clipping
+the soft D on a robotic voice — and scored **80 against a threshold of 80**: a
+pass with no margin at all, in ~6.3 s on CPU. A single word is the easy case,
+which makes this the sharpest form of the caveat above. A synthetic voice sits
+on the boundary where a human voice has room, so do not read a synthesized
+pass as headroom and do not tune the threshold against one.
+
 ---
 
 ## Difficulty, and why it is two numbers
