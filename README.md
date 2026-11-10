@@ -109,11 +109,36 @@ them **full** or **words only**.
 | Spanish | gender + number agreement | full |
 | Japanese | nothing — no articles, gender or number | full |
 | Russian | frames that keep the noun nominative | full |
-| French | a table of head-noun genders (90% of items) | full, partial table |
-| German | compound splitting, case, and noun capitalisation | **words only** |
+| French | a table of head-noun genders | full; gender known for **89.7%** of reachable items (228 entries) |
+| German | compound head gender, and noun capitalisation | full; gender known for **83.3%** of reachable items (190 entries) |
 
-Adding one is a dict of frames and an `article` hook. Two rules learned the
-hard way, both now enforced by checks:
+Run `python scripts/coverage_report.py` to reproduce both numbers. It asks
+`sentence_for` the same question the server asks at request time and counts
+the answers rather than re-deriving the rule, so the figure cannot drift away
+from the behaviour. The denominator is every `item.*` and `block.*` string
+the dictionary serves **except** `block.minecraft.banner.*`, which are
+tooltip descriptions rather than items: 2,116 names. Counting the banner
+strings instead drops the same tables to 72.9% and 74.9%, which is the
+denominator talking rather than the table.
+
+That denominator is a floor rather than an exact count. It still holds
+perhaps a hundred strings that are not item names at all — "Dieses Bett ist
+blockiert" is in there — because they carry the `block.` prefix. Those can
+never be covered and should not be, so the real figure is a little higher
+than the one printed. It is left that way deliberately: an exact number
+would need a hand-maintained exclusion list, and a denominator nobody else
+can re-derive is worth less than one that is merely conservative.
+
+**German avoided the case problem rather than solving it.** German marks case
+on the article and, for weak masculines, on the noun ("ein Diamant" but "einen
+Diamant*en*"), and that ending is not derivable from an item name. Every German
+frame is therefore nominative, where masculine and neuter share "ein",
+feminine is "eine", and no noun changes ending — so the pack needs gender and
+nothing else. It is also the only pack that keeps the item name capitalised
+mid-sentence, which German requires and the other four do not.
+
+Adding one is a dict of frames and an `article` hook. Four rules learned the
+hard way, each now enforced by a check:
 
 * **Do not generate the grammar data with a model.** Measured on French head
   nouns, the local judge got 47/50 — and the three it missed (`oeuf`,
@@ -127,11 +152,13 @@ hard way, both now enforced by checks:
   memory.
 * **Partial is fine; wrong is not.** A pack may declare a `known` hook; an
   item it does not know falls back to tier 2 rather than guessing an article.
-  French is at 90% of reachable items and stops there on purpose: the tail is
-  163 head words at one or two items each.
+  French is at 89.7% of reachable items and stops there on purpose: the tail
+  is 163 head words at one or two items each. German is at 83.3%; what is
+  left there is mostly plurals ("Eichenholzbretter"), which need frames that
+  agree with number rather than more gender data.
 * **Count the right denominator.** `block.minecraft.banner.*` are tooltip
   descriptions of banner patterns, not items, and 688 of them sitting in the
-  count made French look like 65% when it was 80%.
+  count make French read as 72.9% when against reachable items it is 89.7%.
 
 ---
 

@@ -658,6 +658,222 @@ def _ja_is_plural(name: str) -> bool:
     return False
 
 
+# ---------------------------------------------------------------------------
+# German
+#
+# **Every frame here is nominative, and that is the design, not a shortcut.**
+# German marks case on the article and, for weak masculines, on the noun
+# itself: "der Diamant" but "ich habe einen Diamant*en*". That ending cannot be
+# predicted from a Minecraft item name, and teaching it wrong is worse than not
+# having the feature. In the nominative the indefinite article is "ein" for
+# masculine AND neuter and "eine" for feminine, and no noun changes its ending
+# -- so a pack built only from nominative frames needs the gender and nothing
+# else. Frames that would need the accusative were not written rather than
+# guessed.
+#
+# Gender comes from the head of the compound, which in German is its LAST
+# element ("Diamantspitzhacke" is feminine because "Spitzhacke" is). Compounds
+# are one word, so this matches on suffix, longest match winning.
+_DE_HEAD_GENDER: tuple[tuple[str, str], ...] = (
+    # feminine
+    ("spitzhacke", "f"), ("hacke", "f"), ("schaufel", "f"), ("axt", "f"),
+    ("angel", "f"), ("schere", "f"), ("kerze", "f"), ("spitze", "f"),
+    ("flanke", "f"), ("kugel", "f"), ("blume", "f"), ("glasscheibe", "f"),
+    ("scheibe", "f"), ("schnauze", "f"), ("kiste", "f"), ("raute", "f"),
+    ("wolle", "f"), ("stufe", "f"), ("treppe", "f"), ("tuer", "f"),
+    ("falltuer", "f"), ("leiter", "f"), ("kette", "f"), ("perle", "f"),
+    ("rute", "f"), ("platte", "f"), ("suppe", "f"), ("milch", "f"),
+    ("karte", "f"), ("uhr", "f"), ("lore", "f"), ("schiene", "f"),
+    ("hose", "f"), ("haube", "f"), ("maske", "f"), ("flasche", "f"),
+    ("beere", "f"), ("melone", "f"), ("ruebe", "f"), ("kartoffel", "f"),
+    ("karotte", "f"), ("laterne", "f"), ("glocke", "f"), ("ranke", "f"),
+    ("wurzel", "f"),
+    # neuter
+    ("holz", "n"), ("erz", "n"), ("glas", "n"), ("gold", "n"),
+    ("eisen", "n"), ("schwert", "n"), ("bett", "n"), ("boot", "n"),
+    ("buch", "n"), ("fass", "n"), ("feuer", "n"), ("gras", "n"),
+    ("laub", "n"), ("leder", "n"), ("papier", "n"), ("pulver", "n"),
+    ("seil", "n"), ("tor", "n"), ("wasser", "n"), ("banner", "n"),
+    ("geschirr", "n"), ("fleisch", "n"), ("auge", "n"), ("herz", "n"),
+    ("netz", "n"), ("brot", "n"), ("horn", "n"), ("moos", "n"),
+    # masculine
+    ("block", "m"), ("stein", "m"), ("barren", "m"), ("stab", "m"),
+    ("klumpen", "m"), ("balken", "m"), ("pfahl", "m"), ("zaun", "m"),
+    ("knopf", "m"), ("hebel", "m"), ("kolben", "m"), ("trichter", "m"),
+    ("ofen", "m"), ("amboss", "m"), ("kessel", "m"), ("eimer", "m"),
+    ("helm", "m"), ("brustpanzer", "m"), ("stiefel", "m"), ("apfel", "m"),
+    ("kuchen", "m"), ("pilz", "m"), ("zweig", "m"), ("beton", "m"),
+    ("farbstoff", "m"), ("globus", "m"), ("fluss", "m"), ("schaedel", "m"),
+    ("kompass", "m"), ("bogen", "m"), ("koecher", "m"), ("sattel", "m"),
+    ("diamant", "m"), ("smaragd", "m"), ("dreizack", "m"), ("kaktus", "m"),
+    ("schluessel", "m"), ("kopf", "m"), ("krug", "m"), ("ziegel", "m"),
+    ("staub", "m"), ("splitter", "m"), ("kuerbis", "m"), ("zucker", "m"),
+    ("knochen", "m"), ("creeper", "m"), ("teppich", "m"), ("trank", "m"),
+    ("panzer", "m"), ("harnisch", "m"), ("schiefer", "m"), ("loewenzahn", "m"),
+    ("schwefel", "m"), ("pfeil", "m"), ("rost", "m"), ("verlauf", "m"),
+    ("keim", "m"), ("spross", "m"), ("zaehler", "m"), ("melder", "m"),
+    # more feminine
+    ("keramik", "f"), ("tulpe", "f"), ("azalee", "f"), ("statue", "f"),
+    ("leuchte", "f"), ("truhe", "f"), ("bluete", "f"), ("orchidee", "f"),
+    ("koralle", "f"), ("lilie", "f"), ("rose", "f"), ("nelke", "f"),
+    ("zwiebel", "f"), ("sichel", "f"), ("feder", "f"), ("schnur", "f"),
+    # more neuter
+    ("buendel", "n"), ("kissen", "n"), ("kreuz", "n"), ("feld", "n"),
+    ("gitter", "n"), ("logo", "n"), ("segel", "n"), ("pulverfass", "n"),
+    ("gestein", "n"),
+    # Compound heads found by measuring what still fell back to tier 2.
+    # Each heads a family rather than a single item, which is why these are
+    # the ones worth listing.
+    ("scherbe", "f"),      # die Scherbe -- the pottery sherds
+    ("vorlage", "f"),      # die Vorlage -- smithing and banner templates
+    ("mauer", "f"),        # die Mauer -- every wall block
+    ("stamm", "m"),        # der Stamm -- logs and stems
+    ("faecher", "m"),      # der Faecher -- coral fans
+    ("satz", "m"),         # der Satz -- Besatz, Einsatz, Ersatz
+    # das Schild (a sign or a plate) in every compound; der Schild (a shield)
+    # only ever stands alone as "Schild" or behind a colour adjective, and
+    # both of those forms are refused by _DE_AMBIGUOUS before this is read.
+    # Checked against the lang file rather than assumed: of the 74 names
+    # ending in -schild, the 17 that mean a shield are all two words.
+    ("schild", "n"),
+    ("regal", "n"),        # das Regal -- the bookshelves and chiseled shelves
+    ("pflanze", "f"),      # die Pflanze
+    ("fackel", "f"),       # die Fackel
+    ("speer", "m"),        # der Speer
+    ("stiel", "m"),        # der Stiel
+    ("schutz", "m"),       # der Schutz -- Beinschutz
+    ("tisch", "m"),        # der Tisch -- the crafting and enchanting tables
+    ("fisch", "m"),        # der Fisch
+    ("lauch", "m"),        # der Lauch
+
+    # Productive German suffixes. These are rules rather than words, so they
+    # go last and only win when no listed head matched. Every one of them is
+    # exceptionless for gender in standard German.
+    ("ung", "f"), ("heit", "f"), ("keit", "f"), ("schaft", "f"),
+    ("ion", "f"), ("taet", "f"), ("enz", "f"), ("ei", "f"),
+    ("sicht", "f"), ("kraft", "f"), ("staerke", "f"),
+    # -ling is masculine without exception: Setzling, Frischling, Schaedling.
+    ("ling", "m"),
+    ("chen", "n"), ("lein", "n"), ("tum", "n"),
+)
+
+# Deliberately absent and must stay absent: "Schild" is two different words
+# with two different genders -- der Schild (shield), das Schild (sign) -- and
+# Minecraft uses both. A guess here is a coin flip taught as fact.
+_DE_AMBIGUOUS: frozenset[str] = frozenset({"schild", "schilder"})
+
+_DE_UMLAUT = str.maketrans({"ä": "ae", "ö": "oe",
+                            "ü": "ue", "ß": "ss"})
+
+
+# A genitive or prepositional attribute follows the noun it modifies, so in
+# "Trank des Befalls" the head is Trank and not Befalls. Taking the last word
+# gets the German compound right and this construction exactly wrong; 39 of
+# the names that used to fall back to tier 2 were only this.
+_DE_ATTRIBUTE_MARKERS = frozenset({"des", "der", "vom", "von", "aus"})
+
+
+def _de_head(name: str) -> str:
+    parts = name.split()
+    if not parts:
+        return ""
+    for index, word in enumerate(parts):
+        if index and word.lower() in _DE_ATTRIBUTE_MARKERS:
+            parts = parts[:index]
+            break
+    return parts[-1].lower().translate(_DE_UMLAUT)
+
+
+def _de_gender(name: str) -> str | None:
+    """Gender of the compound's head, or None when it is not known."""
+    head = _de_head(name)
+    if not head or head in _DE_AMBIGUOUS:
+        return None
+    best: tuple[int, str] | None = None
+    for suffix, gender in _DE_HEAD_GENDER:
+        if head.endswith(suffix) and (best is None or len(suffix) > best[0]):
+            best = (len(suffix), gender)
+    return None if best is None else best[1]
+
+
+def _de_known(name: str) -> bool:
+    return _de_gender(name) is not None
+
+
+def _de_article(name: str) -> str:
+    """Nominative indefinite article. Masculine and neuter share "ein"."""
+    return "eine" if _de_gender(name) == "f" else "ein"
+
+
+def _de_is_plural(name: str) -> bool:
+    """Not consulted: no frame here agrees with number, by construction."""
+    return False
+
+
+_DE_SENTENCES: dict[str, list[tuple[int, str, str]]] = {
+    "craft": [
+        (0, "Das ist {article} {name}", "This is {en_article} {en_name}"),
+        (0, "Hier ist {article} {name}", "Here is {en_article} {en_name}"),
+        (1, "Fertig ist {article} {name}", "Finished is {en_article} {en_name}"),
+        (1, "{article_capital} {name} ist fertig",
+         "{en_article_capital} {en_name} is finished"),
+        (2, "Endlich ist {article} {name} fertig",
+         "At last {en_article} {en_name} is finished"),
+        (2, "{article_capital} {name} ist sehr praktisch",
+         "{en_article_capital} {en_name} is very handy"),
+        (3, "Nach langer Arbeit ist {article} {name} fertig",
+         "After long work {en_article} {en_name} is finished"),
+        (3, "Das Ergebnis ist {article} {name}",
+         "The result is {en_article} {en_name}"),
+    ],
+    "pickup": [
+        (0, "Das ist {article} {name}", "This is {en_article} {en_name}"),
+        (0, "Hier ist {article} {name}", "Here is {en_article} {en_name}"),
+        (1, "Da ist {article} {name}", "There is {en_article} {en_name}"),
+        (1, "Endlich {article} {name}", "At last {en_article} {en_name}"),
+        (2, "{article_capital} {name} ist genau das, was ich suche",
+         "{en_article_capital} {en_name} is exactly what I am looking for"),
+        (2, "Hier unten ist {article} {name}",
+         "Down here is {en_article} {en_name}"),
+        (3, "Nach langer Suche ist hier {article} {name}",
+         "After a long search, here is {en_article} {en_name}"),
+        (3, "Das ist {article} {name}, und das ist selten",
+         "This is {en_article} {en_name}, and that is rare"),
+    ],
+    "default": [
+        (0, "Das ist {article} {name}", "This is {en_article} {en_name}"),
+        (0, "Hier ist {article} {name}", "Here is {en_article} {en_name}"),
+        (1, "{article_capital} {name} ist praktisch",
+         "{en_article_capital} {en_name} is handy"),
+        (1, "Da ist {article} {name}", "There is {en_article} {en_name}"),
+        (2, "{article_capital} {name} ist besser als nichts",
+         "{en_article_capital} {en_name} is better than nothing"),
+        (2, "Im Moment ist {article} {name} genug",
+         "For now {en_article} {en_name} is enough"),
+        (3, "Wenn alles gut geht, ist {article} {name} bald fertig",
+         "If all goes well, {en_article} {en_name} will soon be finished"),
+        (3, "Das hier ist {article} {name}, und mehr brauche ich nicht",
+         "This here is {en_article} {en_name}, and I need no more"),
+    ],
+}
+
+_DE_LEGENDARY: list[tuple[int, str, str]] = [
+    (0, "Das ist {article} {name}", "This is {en_article} {en_name}"),
+    (0, "Endlich {article} {name}", "At last {en_article} {en_name}"),
+    (1, "Hier ist {article} {name}", "Here is {en_article} {en_name}"),
+    (1, "{article_capital} {name} ist sehr selten",
+     "{en_article_capital} {en_name} is very rare"),
+    (2, "Nach langer Zeit ist hier {article} {name}",
+     "After a long time, here is {en_article} {en_name}"),
+    (2, "So etwas ist selten: {article} {name}",
+     "Something like this is rare: {en_article} {en_name}"),
+    (3, "Ich habe nicht gedacht, dass {article} {name} hier ist",
+     "I did not think {en_article} {en_name} would be here"),
+    (3, "Der Weg war lang, aber hier ist {article} {name}",
+     "The road was long, but here is {en_article} {en_name}"),
+]
+
+
 # Per language: how to pick the article, and the frames available.
 # A language is only eligible for tiers 3-4 if it appears here.
 _PHRASE_PACKS: dict[str, dict[str, object]] = {
@@ -678,6 +894,17 @@ _PHRASE_PACKS: dict[str, dict[str, object]] = {
         "plural": _ru_is_plural,
         "sentences": _RU_SENTENCES,
         "legendary": _RU_LEGENDARY,
+    },
+    "de": {
+        "article": _de_article,
+        "plural": _de_is_plural,
+        "sentences": _DE_SENTENCES,
+        "legendary": _DE_LEGENDARY,
+        # Like French: gender is required, the table is partial on purpose, and
+        # an item whose head is unknown falls back rather than being guessed.
+        "known": _de_known,
+        # German nouns are capitalised mid-sentence. The only pack that is.
+        "keep_case": True,
     },
     "fr": {
         "article": _fr_article,
@@ -767,10 +994,16 @@ def sentence_for(name: str, language: str, context: str = "default",
     # is simply wrong for a plural item -- "Esto es unos élitros" was on
     # screen before this existed. The verb forms are substituted rather than
     # written into the templates so one frame covers both numbers.
+    # German capitalises every noun, wherever it sits in the sentence: "ein
+    # Diamant", never "ein diamant". Spanish, French and Russian all want the
+    # lower-case form mid-sentence, so this is a per-pack choice rather than a
+    # global one. Lower-casing a German noun is not a cosmetic slip -- it is
+    # the single most visible spelling error a learner can be taught.
+    shown_name = name if pack.get("keep_case") else name.lower()
     target = template.format(
         article=article,
         article_capital=article.capitalize(),
-        name=name.lower(),
+        name=shown_name,
         **{"is": "son" if plural else "es",
            "this": "Estos" if plural else "Esto",
            "finds": "encuentran" if plural else "encuentra"})

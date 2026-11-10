@@ -5,6 +5,83 @@ carry the reasoning in full; this is the chronology.
 
 ---
 
+## 2026-11-10 — a German phrase pack, and numbers a script can reproduce
+
+### Added
+
+- **German sentence frames (tier 3-4).** 24 frames plus 8 legendary ones and
+  a head-gender table, so German joins Spanish, Japanese, Russian and French
+  at `full`. The picker tag derives from `supports_sentences()`, so the mod
+  needed no change.
+- **Case was avoided rather than solved.** Every German frame is nominative.
+  There masculine and neuter share `ein` and no noun declines, so the pack
+  needs gender alone and never has to guess a case ending. A frame wanting
+  the accusative or dative would need the whole declension table; none is
+  shipped, so none can be got wrong.
+- **Noun capitalisation is asserted, not reviewed.** Packs may set
+  `keep_case`; German does, and the formatter stopped lower-casing the item
+  name. The test fails if `Diamantschwert` comes back lower-cased
+  mid-sentence — the most visible spelling error this feature could teach.
+- **`scripts/coverage_report.py`.** The READMEs quote coverage percentages
+  and nothing in the repo produced them, so they had to be taken on faith.
+  This prints them. It calls `sentence_for` with the same arguments the
+  server uses and counts what comes back templated, rather than
+  re-implementing the decision — a copy of the rule could agree with the
+  README while disagreeing with the code.
+
+### Changed
+
+- **German coverage 45.8% -> 83.3% of reachable items** (1,763 of 2,116),
+  measured. Two things did it, both found by listing what still fell back
+  rather than by guessing what might be missing:
+  - **Nine compound heads that each front a family** — `-scherbe` (the
+    pottery sherds), `-vorlage` (smithing and banner templates), `-mauer`,
+    `-stamm`, `-faecher`, `-satz`, `-regal`, `-pflanze`, `-fackel` and the
+    rest — plus `-ling`, which is masculine in German without exception.
+  - **A genitive attribute follows its head**, so the head of "Trank des
+    Befalls" is *Trank*, not *Befalls*. Taking the last word gets every
+    German compound right and this construction silently wrong, with the
+    article agreeing with the wrong noun. 39 names were only this.
+- **`-schild` resolves to neuter, and the bare noun still does not.** *der*
+  Schild is a shield, *das* Schild is a sign. Checked against the lang file
+  instead of assumed: of the 74 names ending in `-schild`, the 17 meaning a
+  shield are all two words ("Schwarzer Schild"), which `_DE_AMBIGUOUS`
+  already catches before the suffix table is read. So the compound rule is
+  safe and the existing guard is what makes it safe — both halves are now
+  asserted, because the second only became load-bearing when the first was
+  added.
+
+### Fixed
+
+- **Coverage figures that were measured against a denominator nobody could
+  re-derive.** The language tables had been rewritten by hand twice in one
+  day, landing on 90.4%/68.7% and before that 72.7%/63.6%, from two filters
+  that disagreed with each other and with the dictionary the backend
+  actually serves. All of them are replaced by what
+  `scripts/coverage_report.py` prints from the production path: French
+  **89.7%**, German **83.3%** of 2,116 reachable items.
+- **The denominator is now described as the floor it is.** It still contains
+  roughly a hundred strings that are no kind of item — "Dieses Bett ist
+  blockiert" among them — because they carry the `block.` prefix. They can
+  never be covered, so the true percentage is slightly higher. Left
+  conservative on purpose: an exact figure needs a hand-maintained exclusion
+  list, and a number nobody else can reproduce is worth less than one that
+  only errs downward.
+- **"Two rules learned the hard way" sat above four bullets.**
+
+### Known
+
+- **`lang/` holds two different Minecraft dumps.** `de_de`, `fr_fr`, `ru_ru`
+  and `ja_jp` have 8,665 keys and include blocks newer than the 1.20.4 the
+  mod targets (`pale_oak_sign`, `poplar_sign`); `en_us` and `es_es` have
+  ~6,400. The four compared against each other are consistent, so the
+  coverage table is a fair comparison, but items absent from `en_us` fall
+  back to a name derived from their key for the English gloss. Not fixed
+  before a release: re-extracting the dictionaries is not a change to make
+  the night before shipping.
+
+---
+
 ## 2026-11-09 (later) — 0.1.2, so the download carries the installer fixes
 
 ### Changed
