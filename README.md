@@ -1,4 +1,4 @@
-# leximine-backend
+# leximine-backend — local speech recognition for Leximine
 
 Pronunciation-checking server for the
 [**Leximine**](https://github.com/optumesto/leximine) Minecraft mod. The
