@@ -5,6 +5,20 @@ carry the reasoning in full; this is the chronology.
 
 ---
 
+## 2026-11-10 (later) — 0.1.3, so the download carries the German pack
+
+### Changed
+
+- **Version 0.1.3.** The zip ships `backend/app/phrases.py`, so the German
+  coverage work landed in the repository and not in the thing people
+  actually download. 0.1.2's asset still had German at 45.8% while the
+  README had been updated to say 83.3% — a claim the download did not
+  deliver, which is the specific failure this project keeps a rule about.
+  Checked by listing the published zip rather than assumed.
+- Replacing 0.1.2's bytes in place was rejected for the reason it was
+  rejected twice before: that version is public and already downloaded, and
+  its tag would stop describing its contents.
+
 ## 2026-11-10 — a German phrase pack, and numbers a script can reproduce
 
 ### Added
