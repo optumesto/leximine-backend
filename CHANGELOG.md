@@ -5,7 +5,7 @@ carry the reasoning in full; this is the chronology.
 
 ---
 
-## 2026-11-14 — Polish
+## 2026-11-14 — 0.1.4, Polish
 
 ### Added
 
