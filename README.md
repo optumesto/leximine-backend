@@ -111,6 +111,7 @@ them **full** or **words only**.
 | Russian | frames that keep the noun nominative | full |
 | French | a table of head-noun genders | full; gender known for **89.7%** of reachable items (228 entries) |
 | German | compound head gender, and noun capitalisation | full; gender known for **83.3%** of reachable items (190 entries) |
+| Polish | nothing — every frame is invariant | full |
 
 Run `python scripts/coverage_report.py` to reproduce both numbers. It asks
 `sentence_for` the same question the server asks at request time and counts
@@ -128,6 +129,31 @@ never be covered and should not be, so the real figure is a little higher
 than the one printed. It is left that way deliberately: an exact number
 would need a hand-maintained exclusion list, and a denominator nobody else
 can re-derive is worth less than one that is merely conservative.
+
+**Polish avoided it even harder, and paid for it in vocabulary.** Polish
+gives no escape hatch of the Russian kind: Russian can say "у меня есть" and
+keep the noun nominative, while the Polish for "I have X" is "mam X" and
+governs the accusative. Item names here are adjective-first, so a feminine
+item inflects in both words — "Akacjowa furtka" becomes "Akacjową furtkę".
+Number is no easier: the adjective ending cannot separate a neuter singular
+from a plural ("akacjowe drewno" against "akacjowe liście"), so any frame
+containing "jest" would have to guess between it and "są". And Polish marks
+the SPEAKER's gender in the past tense — "znalazłem" or "znalazłam" — which
+the mod cannot know.
+
+So every Polish frame is invariant: presentatives, appositions and the
+"to" copula, with the item name inserted exactly as Minecraft spells it.
+Nothing agrees with it and nothing governs it. The cost is that the most
+natural phrases for a game — "I have X", "I am crafting X" — are all
+accusative and are simply absent. The gain is that Polish needs no gender
+table at all, so unlike French and German its coverage is total rather than
+partial. `scripts/test_phrases.py` enforces this mechanically: it renders
+every frame against a feminine, a plural, a masculine and a genitive-
+attribute name and fails if the item name does not survive verbatim, and it
+rejects any frame with an agreeing verb or with a preposition immediately
+before the item. Adding accusative frames later is possible, but it needs
+verified gender data plus masculine animacy — and the rule below about not
+generating that with a model still stands.
 
 **German avoided the case problem rather than solving it.** German marks case
 on the article and, for weak masculines, on the noun ("ein Diamant" but "einen

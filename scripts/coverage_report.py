@@ -39,7 +39,8 @@ from app.phrases import (  # noqa: E402
     MAX_LEVEL, _PHRASE_PACKS, head_noun, sentence_for,
 )
 
-LANGS = {"es": "es_es", "ja": "ja_jp", "ru": "ru_ru", "de": "de_de", "fr": "fr_fr"}
+LANGS = {"es": "es_es", "ja": "ja_jp", "ru": "ru_ru", "de": "de_de",
+         "fr": "fr_fr", "pl": "pl_pl"}
 BANNER_PREFIX = "block.minecraft.banner."
 
 

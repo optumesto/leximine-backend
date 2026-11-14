@@ -12,6 +12,14 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+# Polish, German and Japanese frames all carry non-cp1252 characters,
+# and the Windows console defaults to cp1252: without this the run
+# dies partway through and reads as a failure in the pack.
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.phrases import (  # noqa: E402
@@ -57,6 +65,13 @@ ARTICLE_CASES = [
     ("Diamante", "un"),
     ("Piedra", "una"),
 ]
+
+
+def _pl_pack() -> dict:
+    """The registered Polish pack, for asserting on what it does NOT have."""
+    from app.phrases import _PHRASE_PACKS
+
+    return _PHRASE_PACKS["pl"]
 
 
 def main() -> int:
@@ -223,6 +238,117 @@ def main() -> int:
         failures += 0 if ok else 1
         verb = "builds " if should_build else "refuses"
         print(f"  {'ok  ' if ok else 'FAIL'} {verb} {name:20} tier {built.tier}")
+
+
+    # ------------------------------------------------------------------
+    # Polish
+    # ------------------------------------------------------------------
+    # The Polish pack's whole safety argument is that no frame touches the
+    # item name and nothing in a frame agrees with it. That is not a claim
+    # to take on trust -- it is checked mechanically below, because the
+    # moment somebody adds "Mam {name}" the guarantee is gone and every
+    # feminine item starts teaching a wrong accusative.
+    print("\n-- Polish: the name is never inflected --")
+    from app.phrases import _PL_LEGENDARY, _PL_SENTENCES  # noqa: E402
+
+    # One of each class that would break if a frame governed a case or
+    # agreed in number.
+    PL_NAMES = [
+        ("Akacjowa furtka", "feminine, accusative would be 'akacjowa,furtke,'"),
+        ("Akacjowe liscie", "plural, 'jest' would have to become 'sa,'"),
+        ("Akacjowy przycisk", "masculine inanimate"),
+        ("Debowe deski", "plural"),
+        ("Sztabka netherytu", "noun + genitive attribute"),
+        ("Diamentowy miecz", "masculine, the common case"),
+    ]
+    for name, why in PL_NAMES:
+        bad = []
+        for tier in (3, 4):
+            for level in range(MAX_LEVEL + 1):
+                for context in ("craft", "pickup", "default"):
+                    pool = frames_for("pl_pl", tier, context, level)
+                    for _ in range(len(pool) * 6):
+                        text, _en, templated = sentence_for(
+                            name, "pl_pl", context, tier=tier, level=level,
+                            english_name="Thing")
+                        if not templated:
+                            bad.append("fell back to tier 2")
+                        elif name.lower() not in text:
+                            bad.append(text)
+        ok = not bad
+        failures += 0 if ok else 1
+        print(f"  {'ok  ' if ok else 'FAIL'} {name:20} survives verbatim"
+              f"   ({why})"
+              f"{'' if ok else '  e.g. ' + bad[0]}")
+
+    print("\n-- Polish: no frame can agree with the item --")
+    # Words that would force a choice the pack cannot make:
+    #   jest/sa,  -- number agreement with the item
+    #   mam/robie,/widze,/znalaz* -- govern the accusative, or mark the
+    #                                speaker's gender in the past tense
+    # Verbs that would agree with the item, or mark the speaker's gender.
+    # Banned anywhere in a frame.
+    PL_BANNED_ANYWHERE = ("jest", "sa,", "mam", "robie,", "widze,",
+                          "znalaz", "zrobi", "czekalem", "czekalam")
+    # Prepositions govern a case, but only over the noun they actually
+    # introduce. "Dluga droga, a na koncu X" is fine: "na" governs "koncu"
+    # and X is an apposition. So this is checked POSITIONALLY -- what
+    # matters is the word immediately before the item.
+    PL_PREPOSITIONS = {"na", "w", "we", "z", "ze", "do", "o", "po", "przez",
+                       "pod", "nad", "za", "od", "u", "przy", "bez", "dla"}
+
+    def _fold(text):
+        trans = str.maketrans({"\u0105": "a,", "\u0119": "e,", "\u0142": "l",
+                               "\u015b": "s", "\u0107": "c", "\u017c": "z",
+                               "\u017a": "z", "\u0144": "n", "\u00f3": "o"})
+        return text.lower().translate(trans)
+
+    all_frames = [f for pool in _PL_SENTENCES.values() for f in pool]
+    all_frames += _PL_LEGENDARY
+    for _level, template, _en in all_frames:
+        folded = _fold(template)
+        hits = [w for w in PL_BANNED_ANYWHERE if w in folded.replace("{name}", "")]
+        # A preposition is never separated from its noun by punctuation, so
+        # anything after the last comma, colon or dash is a fresh phrase.
+        # That is what tells the interjection in "O, {name}" ("Oh, a sword")
+        # apart from the preposition in "o {name}" ("about a sword").
+        lead = folded.split("{name}")[0]
+        for mark in (",", ":", "-", ";"):
+            lead = lead.rsplit(mark, 1)[-1]
+        before = lead.split()
+        if before and before[-1] in PL_PREPOSITIONS:
+            hits.append("governed by '%s'" % before[-1])
+        ok = not hits
+        failures += 0 if ok else 1
+        print(f"  {'ok  ' if ok else 'FAIL'} {template:42}"
+              f"{'' if ok else '  governs/agrees: ' + str(hits)}")
+
+    print("\n-- Polish: every item is covered, no gender table --")
+    # French and German fall back to tier 2 for an unlisted head. Polish
+    # must never do that, because it has no table to be missing from.
+    pl_pack_has_known = "known" in _pl_pack()
+    ok = not pl_pack_has_known
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} no 'known' hook, so coverage is total")
+
+    for name in ("Zupa z gulaszu", "Plonaca rzecz", "Cokolwiek"):
+        _t, _e, templated = sentence_for(name, "pl_pl", "default", tier=3,
+                                         level=0, english_name="Thing")
+        failures += 0 if templated else 1
+        print(f"  {'ok  ' if templated else 'FAIL'} {name:20} still reaches tier 3")
+
+    print("\n-- Polish: frames exist at every level and context --")
+    for context in ("craft", "pickup", "default"):
+        for level in range(MAX_LEVEL + 1):
+            n = len(frames_for("pl_pl", 3, context, level))
+            ok = n >= 2
+            failures += 0 if ok else 1
+            print(f"  {'ok  ' if ok else 'FAIL'} {context:8} level {level}"
+                  f"  {n} frames")
+    n_leg = len(frames_for("pl_pl", 4, "default", MAX_LEVEL))
+    ok = n_leg >= 6
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} legendary pool  {n_leg} frames")
 
     print(f"\n{'PASSED' if failures == 0 else str(failures) + ' FAILURE(S)'}")
     return 1 if failures else 0

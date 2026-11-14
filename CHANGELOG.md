@@ -5,6 +5,60 @@ carry the reasoning in full; this is the chronology.
 
 ---
 
+## 2026-11-14 — Polish
+
+### Added
+
+- **Polish (`pl_pl`), full sentence support.** `lang/pl_pl.json` extracted
+  from the local Minecraft assets (8,670 keys, the newer dump alongside
+  de/fr/ru/ja), plus a `_PL_SENTENCES` pack in `app/phrases.py` and
+  registration in `_PHRASE_PACKS`. 2,120 reachable items, all covered.
+
+- **Coverage report knows about Polish.** `scripts/coverage_report.py`
+  had a hardcoded `LANGS` map; `pl` is in it now and reports
+  "n/a (no gender needed)" alongside es/ja/ru.
+
+### Why every Polish frame is invariant
+
+Polish has no equivalent of the Russian "у меня есть + nominative"
+construction that the Russian pack is built on. Three things would
+otherwise have to be guessed:
+
+- **Case.** "mam X" governs the accusative, and item names are
+  adjective-first, so a feminine item inflects twice: "Akacjowa furtka"
+  becomes "Akacjową furtkę".
+- **Number.** The adjective ending cannot tell a neuter singular from a
+  plural — "akacjowe drewno" against "akacjowe liście" — so a frame with
+  "jest" in it would have to choose between that and "są" with no basis.
+- **The speaker's gender.** Polish marks it in the past tense
+  ("znalazłem" / "znalazłam"), and the mod does not know which.
+
+So the pack uses presentatives, appositions and the invariant "to" copula
+only. The item name goes in exactly as Minecraft spells it. The cost is
+that "I have X" and "I am crafting X" are both accusative and therefore
+absent; the gain is total coverage with no gender table.
+
+### Tests
+
+`scripts/test_phrases.py` gained Polish checks that enforce the above
+rather than describe it: every frame is rendered against a feminine, a
+plural, a masculine and a genitive-attribute name and must contain the
+item name verbatim; no frame may contain an agreeing verb; no frame may
+put a preposition immediately before the item. The preposition check is
+positional and punctuation-aware on purpose — "Dluga droga, a na końcu X"
+is fine because "na" governs "końcu", and "O, X" is the interjection
+rather than the preposition. Validated against deliberately bad frames
+("Mam {name}", "Patrzę na {name}", "To jest {name}"), all three rejected.
+
+### Fixed
+
+- `scripts/test_phrases.py` forces UTF-8 stdout. Polish, German and
+  Japanese frames all carry characters cp1252 cannot encode, and the run
+  was dying partway through on the Windows console in a way that read as
+  a failure in the pack.
+
+---
+
 ## 2026-11-10 (later) — 0.1.3, so the download carries the German pack
 
 ### Changed

@@ -648,6 +648,118 @@ def _ru_is_plural(name: str) -> bool:
     return False
 
 
+
+
+# ----------------------------------------------------------------------
+# Polish
+# ----------------------------------------------------------------------
+# EVERY FRAME HERE LEAVES THE ITEM NAME IN THE NOMINATIVE, UNTOUCHED, AND
+# NOTHING IN THE FRAME AGREES WITH IT. That is a hard constraint, not a
+# style, and it is what lets Polish ship with no gender table at all.
+#
+# Three things would otherwise have to be guessed, and this file's rule is
+# that nothing is ever guessed:
+#
+# 1. CASE. Polish has no "u menya est' + nominative" escape hatch that the
+#    Russian pack leans on. "Mam X" (I have X) governs the ACCUSATIVE, and
+#    Polish item names are adjective-first -- "Akacjowa furtka" becomes
+#    "Akacjowa,furtke" -> "Akacjowa,furtke"... both words inflect:
+#    "Mam akacjowa,furtke," with -a -> -a, on the adjective and -a -> -e, on
+#    the noun. Getting that wrong on a feminine item teaches bad Polish, so
+#    no frame here governs anything but the nominative.
+#
+# 2. NUMBER. "To jest X" needs "To sa, X" for a plural, and the adjective
+#    ending cannot tell them apart: "Akacjowe drewno" is neuter singular
+#    while "Akacjowe liscie" is plural, and both adjectives end in -e. So
+#    no frame here contains a verb that agrees with the item.
+#
+# 3. THE SPEAKER'S GENDER. Polish marks it in the past tense: a male player
+#    says "znalazlem", a female player "znalazlam". The mod does not know
+#    which, so there is no first-person past tense anywhere in this pack.
+#    "Udalo sie," is impersonal and therefore safe.
+#
+# The cost is real and worth stating: the most natural phrases for a game --
+# "I have X", "I am crafting X" -- are all accusative and are simply absent.
+# What is left is presentatives, appositions and the invariant "to" copula.
+# In exchange Polish gets 100% item coverage rather than French's 89.7% or
+# German's 83.3%, because there is no gender table to be partial.
+#
+# Adding accusative frames later is possible but needs VERIFIED gender data
+# for bare noun heads plus masculine animacy, which must not come from a
+# language model -- see the French note above for what that costs.
+_PL_SENTENCES: dict[str, list[tuple[int, str, str]]] = {
+    "craft": [
+        (0, "Oto {name}", "Here is {en_article} {en_name}"),
+        (0, "Gotowe: {name}", "Done: {en_article} {en_name}"),
+        (1, "Udało się: {name}", "Made it: {en_article} {en_name}"),
+        (1, "Wreszcie {name}", "Finally, {en_article} {en_name}"),
+        (2, "Nowy nabytek: {name}", "A new acquisition: {en_article} {en_name}"),
+        (2, "Prosto z warsztatu: {name}",
+         "Straight from the workbench: {en_article} {en_name}"),
+        (3, "Po długiej pracy: {name}",
+         "After a lot of work: {en_article} {en_name}"),
+        (3, "Efekt wielu godzin: {name}",
+         "The result of many hours: {en_article} {en_name}"),
+    ],
+    "pickup": [
+        (0, "Oto {name}", "Here is {en_article} {en_name}"),
+        (0, "O, {name}", "Oh, {en_article} {en_name}"),
+        (1, "Znalezisko: {name}", "A find: {en_article} {en_name}"),
+        (1, "Przede mną {name}", "Before me, {en_article} {en_name}"),
+        (2, "Nareszcie {name}", "At last, {en_article} {en_name}"),
+        (2, "Moja zdobycz: {name}", "My prize: {en_article} {en_name}"),
+        (3, "Po długich poszukiwaniach: {name}",
+         "After a long search: {en_article} {en_name}"),
+        (3, "Rzadka rzecz: {name}", "A rare thing: {en_article} {en_name}"),
+    ],
+    "default": [
+        (0, "To {name}", "This is {en_article} {en_name}"),
+        (0, "Oto {name}", "Here is {en_article} {en_name}"),
+        (1, "W końcu {name}", "Finally, {en_article} {en_name}"),
+        (1, "Niezły skarb: {name}",
+         "Quite a treasure: {en_article} {en_name}"),
+        (2, "Przede mną {name}", "Before me, {en_article} {en_name}"),
+        (2, "Moja zdobycz: {name}", "My prize: {en_article} {en_name}"),
+        (3, "To nie byle co: {name}",
+         "This is no small thing: {en_article} {en_name}"),
+        (3, "Dziś mój dzień: {name}",
+         "Today is my day: {en_article} {en_name}"),
+    ],
+}
+
+_PL_LEGENDARY: list[tuple[int, str, str]] = [
+    (0, "Nareszcie {name}", "At last, {en_article} {en_name}"),
+    (0, "Oto {name}", "Here is {en_article} {en_name}"),
+    (1, "Wielka rzadkość: {name}",
+     "A great rarity: {en_article} {en_name}"),
+    (1, "Prawdziwy skarb: {name}", "A real treasure: {en_article} {en_name}"),
+    (2, "To nie byle co: {name}",
+     "This is no small thing: {en_article} {en_name}"),
+    (2, "Długa droga, a na końcu {name}",
+     "A long road, and at the end, {en_article} {en_name}"),
+    (3, "Marzenie się spełniło: {name}",
+     "A dream came true: {en_article} {en_name}"),
+    (3, "Skarb nad skarby: {name}",
+     "A treasure above treasures: {en_article} {en_name}"),
+]
+
+
+def _pl_article(name: str) -> str:
+    """Polish has no articles."""
+    return ""
+
+
+def _pl_is_plural(name: str) -> bool:
+    """Not consulted, and that is enforced by the pack above.
+
+    Nothing in a Polish frame agrees with the item's number, deliberately:
+    the adjective ending cannot separate a neuter singular from a plural
+    ("akacjowe drewno" against "akacjowe liscie"), so any frame that had to
+    choose between "jest" and "sa," would be guessing.
+    """
+    return False
+
+
 def _ja_article(name: str) -> str:
     """Japanese has no articles. Kept so every pack has the same shape."""
     return ""
@@ -905,6 +1017,15 @@ _PHRASE_PACKS: dict[str, dict[str, object]] = {
         "known": _de_known,
         # German nouns are capitalised mid-sentence. The only pack that is.
         "keep_case": True,
+    },
+    "pl": {
+        "article": _pl_article,
+        "plural": _pl_is_plural,
+        "sentences": _PL_SENTENCES,
+        "legendary": _PL_LEGENDARY,
+        # No "known" hook on purpose. French and German need one because
+        # their frames need a gender the table only partly has; every
+        # Polish frame is invariant, so every item is covered.
     },
     "fr": {
         "article": _fr_article,
